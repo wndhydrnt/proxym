@@ -1,0 +1,31 @@
+package types
+
+// A ConfigGenerator creates a configuration from several services.
+type ConfigGenerator interface {
+	Generate(services []Service)
+}
+
+// A Notifier recognizes changes in your system. For example, it could regularly poll an API or listen on an event bus.
+// If something changes, it notifies the Manager to trigger a refresh.
+type Notifier interface {
+	Start(refresh chan string)
+}
+
+// A ServiceGenerator reads information about nodes and creates a list of services.
+type ServiceGenerator interface {
+	Generate() ([]Service, error)
+}
+
+// A host is an IP and a port that traffic should be proxied to.
+type Host struct {
+	Ip   string
+	Port int
+}
+
+type Service struct {
+	Domain      string
+	Hosts       []Host
+	Id          string
+	Protocol    string
+	ServicePort int
+}

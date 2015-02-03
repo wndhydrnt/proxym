@@ -1,0 +1,9 @@
+{
+  "domain": "registry.example.com",
+  "id": "/registry",
+  "protocol": "tcp",
+  "servicePort": 80,
+  "hosts": [
+    {"ip": "10.10.10.10", "port": 31002}
+  ]
+}

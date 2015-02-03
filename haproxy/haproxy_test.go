@@ -1,0 +1,120 @@
+package haproxy
+
+import (
+	"github.com/stretchr/testify/require"
+	"github.com/wndhydrnt/proxym/types"
+	"path/filepath"
+	"testing"
+)
+
+func TestHAProxyGeneratorTcpConfig(t *testing.T) {
+	expectedConfig := `
+listen redis :6379
+  mode tcp
+  option tcpka
+  option tcplog
+
+  server node1 10.10.10.10:31001 check
+  server node2 10.10.10.11:31002 check
+
+listen docker_registry :5000
+  mode tcp
+
+  server node1 10.10.10.10:31002 check
+`
+
+	redis := types.Service{
+		Domain:      "redis.test.local",
+		Id:          "/redis",
+		Protocol:    "tcp",
+		ServicePort: 6379,
+		Hosts: []types.Host{
+			types.Host{Ip: "10.10.10.10", Port: 31001},
+			types.Host{Ip: "10.10.10.11", Port: 31002},
+		},
+	}
+
+	registry := types.Service{
+		Id:          "/docker/registry",
+		Protocol:    "tcp",
+		ServicePort: 5000,
+		Hosts: []types.Host{
+			types.Host{Ip: "10.10.10.10", Port: 31002},
+		},
+	}
+
+	optionsPath, _ := filepath.Abs("../tests/fixtures/haproxy")
+
+	config := &Config{
+		OptionsPath: optionsPath,
+	}
+
+	haproxy := HAProxyGenerator{
+		c: config,
+	}
+
+	haproxyConfig := haproxy.tcpConfig([]types.Service{redis, registry})
+
+	require.Equal(t, expectedConfig, haproxyConfig)
+}
+
+func TestHAProxyGeneratorHttpConfig(t *testing.T) {
+	expectedConfig := `
+frontend http-in
+  bind *:80
+
+  acl host_one_webapp hdr(host) -i one.app.local
+  acl host_two_webapp hdr(host) -i two.app.local
+
+  use_backend one_webapp_cluster if host_one_webapp
+  use_backend two_webapp_cluster if host_two_webapp
+
+backend one_webapp_cluster
+  balance leastconn
+  option httpclose
+  option forwardfor
+
+  server node1 10.10.10.12:31005 check
+  server node2 10.10.10.11:31002 check
+
+backend two_webapp_cluster
+  balance leastconn
+
+  server node1 10.10.10.10:31002 check
+`
+
+	webappOne := types.Service{
+		Domain:      "one.app.local",
+		Id:          "/one/webapp",
+		Protocol:    "tcp",
+		ServicePort: 80,
+		Hosts: []types.Host{
+			types.Host{Ip: "10.10.10.12", Port: 31005},
+			types.Host{Ip: "10.10.10.11", Port: 31002},
+		},
+	}
+
+	webappTwo := types.Service{
+		Domain:      "two.app.local",
+		Id:          "/two/webapp",
+		Protocol:    "tcp",
+		ServicePort: 80,
+		Hosts: []types.Host{
+			types.Host{Ip: "10.10.10.10", Port: 31002},
+		},
+	}
+
+	optionsPath, _ := filepath.Abs("../tests/fixtures/haproxy")
+
+	config := &Config{
+		OptionsPath: optionsPath,
+	}
+
+	haproxy := HAProxyGenerator{
+		c: config,
+	}
+
+	haproxConfig := haproxy.httpConfig([]types.Service{webappOne, webappTwo})
+
+	require.Equal(t, expectedConfig, haproxConfig)
+}
