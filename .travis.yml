@@ -1,0 +1,17 @@
+sudo: false
+language: go
+go:
+- 1.4.1
+before_deploy: make release
+deploy:
+  provider: releases
+  api_key:
+    secure: V/aFmO1S3gIobmuKDJQhAZjbHXf0YgGgu35MxDHTUBRSCLX5Ab/fyrmKiwQ/kuEKFM/T6PKz9f/6zQd/QvLxn7uFQIUjRrD9ILYrxAAWqM/Q3alnnw3gw8gWg8obskQTK3/bQVFIRrpC1WVkQR+ZWl7qutpKqEEiWyeWp/9MgIk=
+  skip_cleanup: true
+  file:
+    - proxym_linux_386
+    - proxym_linux_amd64
+  on:
+    all_branches: true
+    repo: wndhydrnt/proxym
+    tags: true
