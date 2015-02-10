@@ -118,3 +118,13 @@ backend two_webapp_cluster
 
 	require.Equal(t, expectedConfig, haproxConfig)
 }
+
+func TestHAProxyGeneratorHttpConfigEmptyServices(t *testing.T) {
+	haproxy := HAProxyGenerator{
+		c: &Config{},
+	}
+
+	haproxConfig := haproxy.httpConfig([]types.Service{})
+
+	require.Equal(t, "", haproxConfig)
+}

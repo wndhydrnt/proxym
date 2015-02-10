@@ -27,10 +27,10 @@ func TestShouldRegisterWithMarathon(t *testing.T) {
 
 	watcher := Watcher{
 		config: &Config{
-			HttpHost:        "localhost",
-			HttpPort:        "56398",
-			Endpoint:        "/callback",
-			MarathonServers: []string{ts.URL},
+			HttpHost: "localhost",
+			HttpPort: "56398",
+			Endpoint: "/callback",
+			Servers:  ts.URL,
 		},
 		httpClient: c,
 	}

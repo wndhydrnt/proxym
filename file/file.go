@@ -1,21 +1,33 @@
+// This module expects the following environment variables:
+//
+// PROXYM_FILE_CONFIGS_PATH - Absolute path to the location of the JSON configuration files.
+//
+// PROXYM_FILE_ENABLED - Enable this module.
 package file
 
 import (
 	"encoding/json"
+	"github.com/kelseyhightower/envconfig"
+	"github.com/wndhydrnt/proxym/manager"
 	"github.com/wndhydrnt/proxym/types"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
+type Config struct {
+	ConfigsPath string `envconfig:"configs_path"`
+	Enabled     bool
+}
+
 type ServiceGenerator struct {
-	configFilesPath string
+	c *Config
 }
 
 func (sg *ServiceGenerator) Generate() ([]types.Service, error) {
 	var services []types.Service
 
-	files, err := ioutil.ReadDir(sg.configFilesPath)
+	files, err := ioutil.ReadDir(sg.c.ConfigsPath)
 	if err != nil {
 		return services, err
 	}
@@ -25,7 +37,7 @@ func (sg *ServiceGenerator) Generate() ([]types.Service, error) {
 			continue
 		}
 
-		configFilePath := sg.configFilesPath + "/" + file.Name()
+		configFilePath := sg.c.ConfigsPath + "/" + file.Name()
 
 		if filepath.Ext(configFilePath) != ".json" {
 			continue
@@ -42,11 +54,10 @@ func (sg *ServiceGenerator) Generate() ([]types.Service, error) {
 	return services, nil
 }
 
-func NewServiceGenerator() *ServiceGenerator {
-	configFilesPath := os.Getenv("FILE_CONFIGS_PATH")
+func NewServiceGenerator(c *Config) *ServiceGenerator {
 
 	return &ServiceGenerator{
-		configFilesPath: configFilesPath,
+		c: c,
 	}
 }
 
@@ -71,4 +82,16 @@ func readServiceFromConfig(path string) (types.Service, error) {
 	}
 
 	return service, err
+}
+
+func init() {
+	var c Config
+
+	envconfig.Process("proxym_file", &c)
+
+	if c.Enabled {
+		sg := NewServiceGenerator(&c)
+
+		manager.AddServiceGenerator(sg)
+	}
 }

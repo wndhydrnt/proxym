@@ -6,6 +6,11 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/kelseyhightower/envconfig",
+			"Comment": "v1.0.0-6-ge904934",
+			"Rev": "e9049346b6aae8e6ad500c5a4519ad029439d660"
+		},
+		{
 			"ImportPath": "github.com/stretchr/testify/assert",
 			"Rev": "33a31e5dbed8302d5ab7e6d12b416e95c2c4ebc0"
 		},

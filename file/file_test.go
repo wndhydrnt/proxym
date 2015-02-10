@@ -12,7 +12,7 @@ func TestServiceGeneratorGenerate(t *testing.T) {
 	configFilesPath, _ := filepath.Abs("../tests/fixtures/file")
 
 	g := ServiceGenerator{
-		configFilesPath: configFilesPath,
+		c: &Config{ConfigsPath: configFilesPath},
 	}
 
 	services, err := g.Generate()

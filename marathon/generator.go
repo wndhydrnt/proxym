@@ -22,7 +22,7 @@ func (g *Generator) Generate() ([]types.Service, error) {
 	var apps Apps
 	var tasks Tasks
 
-	server := g.config.MarathonServers[0]
+	server := strings.Split(g.config.Servers, ",")[0]
 
 	resp, err := g.httpClient.Get(fmt.Sprintf("%s%s", server, appsEndpoint))
 	if err != nil {
@@ -123,4 +123,15 @@ func IdToDomainReverse(id string) string {
 	}
 
 	return strings.Join(domainParts, ".")
+}
+
+type LastPartOfIdAndSuffix struct {
+	suffix string
+}
+
+func (l *LastPartOfIdAndSuffix) ToDomain(id string) string {
+	// First item is always empty due to leading '/'. Remove it here.
+	parts := strings.Split(id[1:], "/")
+
+	return parts[len(parts)-1] + "." + l.suffix
 }

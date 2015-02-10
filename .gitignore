@@ -1,1 +1,2 @@
-proxym*
+/proxym*
+package/deb/usr/sbin/proxym

@@ -3,37 +3,41 @@
 // It uses domain based routing for HTTP applications.
 //
 // It requires the following environment variables to be set:
-// HAPROXY_BINARY_PATH - The absolute path to the binary of HAProxy
+// PROXYM_HAPROXY_BINARY_PATH - The absolute path to the binary of HAProxy
 //
-// HAPROXY_CONFIG_FILE_PATH - An absolute path where the generated config file will be stored.
+// PROXYM_HAPROXY_CONFIG_FILE_PATH - An absolute path where the generated config file will be stored.
 //
-// HAPROXY_HTTP_PORT - Define the port under which applications available via HTTP will be reachable. This is usually 80.
+// PROXYM_HAPROXY_ENABLED - Enable this module.
 //
-// HAPROXY_OPTIONS_PATH - An absolute path to a file where 'global' options and 'default's of HAProxy are stored. The
+// PROXYM_HAPROXY_HTTP_PORT - Define the port under which applications available via HTTP will be reachable. This is usually 80.
+//
+// PROXYM_HAPROXY_OPTIONS_PATH - An absolute path to a file where 'global' options and 'default's of HAProxy are stored. The
 //                        content of this file prepended to the rest of the config.
 //
-// HAPROXY_PID_PATH - An absolute where HAProxy stores its PID.
+// PROXYM_HAPROXY_PID_PATH - An absolute where HAProxy stores its PID.
 package haproxy
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/kelseyhightower/envconfig"
+	"github.com/wndhydrnt/proxym/manager"
 	"github.com/wndhydrnt/proxym/types"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 )
 
 type Config struct {
-	BinPath        string
-	ConfigFilePath string
-	HttpPort       int
-	OptionsPath    string
-	ProcessPidPath string
+	BinaryPath     string `envconfig:"binary_path"`
+	ConfigFilePath string `envconfig:"config_file_path"`
+	Enabled        bool
+	HttpPort       int    `envconfig:"http_port"`
+	OptionsPath    string `envconfig:"options_path"`
+	PidPath        string `envconfig:"pid_path"`
 }
 
 type HAProxyGenerator struct {
@@ -64,15 +68,15 @@ func (h *HAProxyGenerator) Generate(services []types.Service) {
 		return
 	}
 
-	cmdParts := []string{"-f", h.c.ConfigFilePath, "-p", h.c.ProcessPidPath}
+	cmdParts := []string{"-f", h.c.ConfigFilePath, "-p", h.c.PidPath}
 
-	pid, err := readExistingFile(h.c.ProcessPidPath)
+	pid, err := readExistingFile(h.c.PidPath)
 	if err == nil {
 		cmdParts = append(cmdParts, "-sf")
 		cmdParts = append(cmdParts, pid)
 	}
 
-	cmd := exec.Command(h.c.BinPath, cmdParts...)
+	cmd := exec.Command(h.c.BinaryPath, cmdParts...)
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
 
@@ -116,6 +120,10 @@ func (h *HAProxyGenerator) httpConfig(services []types.Service) string {
 	var buffer bytes.Buffer
 	aclLines := []string{}
 	useBackendLines := []string{}
+
+	if len(services) == 0 {
+		return ""
+	}
 
 	buffer.WriteString("\nfrontend http-in\n  bind *:80\n\n")
 
@@ -264,35 +272,21 @@ func readExistingFile(fp string) (string, error) {
 	return string(content), nil
 }
 
-func readConfig() *Config {
-	var httpPort int
-
-	binPath := os.Getenv("HAPROXY_BINARY_PATH")
-	configFilePath := os.Getenv("HAPROXY_CONFIG_FILE_PATH")
-	httpPortEnv := os.Getenv("HAPROXY_HTTP_PORT")
-	optionsPath := os.Getenv("HAPROXY_OPTIONS_PATH")
-	processPidPath := os.Getenv("HAPROXY_PID_PATH")
-
-	if httpPortEnv == "" {
-		httpPort = 0
-	} else {
-		httpPort, _ = strconv.Atoi(httpPortEnv)
-	}
-
-	return &Config{
-		BinPath:        binPath,
-		ConfigFilePath: configFilePath,
-		HttpPort:       httpPort,
-		OptionsPath:    optionsPath,
-		ProcessPidPath: processPidPath,
+// Create a new HAProxyGenerator, reading configuration from environment variables.
+func NewGenerator(c *Config) *HAProxyGenerator {
+	return &HAProxyGenerator{
+		c: c,
 	}
 }
 
-// Create a new HAProxyGenerator, reading configuration from environment variables.
-func NewGenerator() *HAProxyGenerator {
-	config := readConfig()
+func init() {
+	var c Config
 
-	return &HAProxyGenerator{
-		c: config,
+	envconfig.Process("proxym_haproxy", &c)
+
+	if c.Enabled {
+		cg := NewGenerator(&c)
+
+		manager.AddConfigGenerator(cg)
 	}
 }

@@ -13,9 +13,10 @@
 package marathon
 
 import (
+	"github.com/kelseyhightower/envconfig"
+	"github.com/wndhydrnt/proxym/manager"
 	"net/http"
 	"os"
-	"strings"
 )
 
 const (
@@ -38,10 +39,11 @@ type Apps struct {
 
 // Configuration as required by the Notifier and ServiceGenerator.
 type Config struct {
-	HttpHost        string
-	HttpPort        string
-	Endpoint        string
-	MarathonServers []string
+	HttpHost string `envconfig:"http_host"`
+	HttpPort string `envconfig:"http_port"`
+	Enabled  bool
+	Endpoint string
+	Servers  string
 }
 
 // A container as returned by the Marathon REST API.
@@ -78,42 +80,57 @@ type Tasks struct {
 	Tasks []Task
 }
 
-func createConfig() *Config {
-	config := &Config{
-		HttpHost: os.Getenv("MARATHON_CALLBACK_HOST"),
-		HttpPort: os.Getenv("MARATHON_CALLBACK_PORT"),
-		Endpoint: os.Getenv("MARATHON_CALLBACK_ENDPOINT"),
-	}
-
-	serversEnv := os.Getenv("MARATHON_SERVERS")
-	servers := strings.Split(serversEnv, ",")
-
-	config.MarathonServers = servers
-
-	return config
-}
-
 // Creates and returns a new Notifier
-func NewNotifier() *Watcher {
+func NewNotifier(c *Config) *Watcher {
 	httpClient := &http.Client{}
 
-	config := createConfig()
-
 	return &Watcher{
-		config:     config,
+		config:     c,
 		httpClient: httpClient,
 	}
 }
 
 // Creates and returns a new ServiceGenerator.
-func NewServiceGenerator(domainStrategy func(string) string) *Generator {
+func NewServiceGenerator(c *Config, domainStrategy func(string) string) *Generator {
 	httpClient := &http.Client{}
 
-	config := createConfig()
-
 	return &Generator{
-		config:         config,
+		config:         c,
 		domainStrategy: domainStrategy,
 		httpClient:     httpClient,
+	}
+}
+
+func domainStrategy() func(string) string {
+	s := os.Getenv("PROXYM_MARATHON_DOMAIN_STRATEGY")
+
+	if s == "LastPartOfIdAndSuffix" {
+		l := LastPartOfIdAndSuffix{suffix: os.Getenv("PROXYM_MARATHON_DOMAIN_SUFFIX")}
+
+		return l.ToDomain
+	}
+
+	if s == "IdToDomainReverse" {
+		return IdToDomainReverse
+	}
+
+	return IdToDomainReverse
+}
+
+func init() {
+	var c Config
+
+	envconfig.Process("proxym_marathon", &c)
+
+	if c.Enabled {
+		n := NewNotifier(&c)
+
+		manager.AddNotifier(n)
+
+		ds := domainStrategy()
+
+		sg := NewServiceGenerator(&c, ds)
+
+		manager.AddServiceGenerator(sg)
 	}
 }
