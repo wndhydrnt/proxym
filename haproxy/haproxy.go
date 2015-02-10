@@ -133,6 +133,15 @@ func (h *HAProxyGenerator) httpConfig(services []types.Service) string {
 		aclLine := fmt.Sprintf("  acl host_%s hdr(host) -i %s", name, service.Domain)
 		aclLines = append(aclLines, aclLine)
 
+		additionalDomains, err := h.readDomains(service.Domain, service.ServicePort)
+		if err != nil {
+			log.Printf("haproxy.HAProxyGenerator.httpConfig: Error reading domains file: '%s'", err)
+		}
+
+		for _, d := range additionalDomains {
+			aclLines = append(aclLines, fmt.Sprintf("  acl host_%s hdr(host) -i %s", name, d))
+		}
+
 		useBackendLine := fmt.Sprintf("  use_backend %s_cluster if host_%s", name, name)
 		useBackendLines = append(useBackendLines, useBackendLine)
 	}
@@ -149,7 +158,7 @@ func (h *HAProxyGenerator) httpConfig(services []types.Service) string {
 
 		buffer.WriteString(fmt.Sprintf("backend %s_cluster\n", name))
 
-		optionData, err := h.readOptions(service.Domain, service.ServicePort)
+		optionData, err := h.readConfig(service.Domain, service.ServicePort)
 		if err != nil {
 			log.Printf("haproxy.HAProxyGenerator.httpConfig: Error reading options file: '%s'", err)
 		}
@@ -177,7 +186,7 @@ func (h *HAProxyGenerator) tcpConfig(services []types.Service) string {
 		header := fmt.Sprintf("\nlisten %s :%d\n  mode tcp\n", name, service.ServicePort)
 		buffer.WriteString(header)
 
-		optionData, err := h.readOptions(service.Domain, service.ServicePort)
+		optionData, err := h.readConfig(service.Domain, service.ServicePort)
 		if err != nil {
 			log.Println("haproxy.HAProxyGenerator.tcpConfig: Error reading options file: '%s'", err)
 		}
@@ -229,8 +238,8 @@ func (h *HAProxyGenerator) sanitizeOptions(o string) []string {
 	return sanitizedOptions
 }
 
-func (h *HAProxyGenerator) readOptions(domain string, port int) (string, error) {
-	optionPath := fmt.Sprintf("%s/%s_%d", h.c.OptionsPath, domain, port)
+func (h *HAProxyGenerator) readConfig(domain string, port int) (string, error) {
+	optionPath := fmt.Sprintf("%s/%s_%d/config", h.c.OptionsPath, domain, port)
 
 	_, err := os.Stat(optionPath)
 	if err != nil {
@@ -249,6 +258,33 @@ func (h *HAProxyGenerator) readOptions(domain string, port int) (string, error) 
 		}
 
 		return string(options), nil
+	}
+}
+
+func (h *HAProxyGenerator) readDomains(domain string, port int) ([]string, error) {
+	domains := []string{}
+
+	domainsPath := fmt.Sprintf("%s/%s_%d/domains", h.c.OptionsPath, domain, port)
+
+	_, err := os.Stat(domainsPath)
+	if err != nil {
+		return domains, nil
+	} else {
+		f, err := os.Open(domainsPath)
+		if err != nil {
+			return domains, err
+		}
+
+		defer f.Close()
+
+		content, err := ioutil.ReadAll(f)
+		if err != nil {
+			return domains, err
+		}
+
+		sanitizedContent := strings.Trim(string(content), "\n")
+
+		return strings.Split(sanitizedContent, "\n"), nil
 	}
 }
 

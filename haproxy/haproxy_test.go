@@ -64,6 +64,8 @@ frontend http-in
   bind *:80
 
   acl host_one_webapp hdr(host) -i one.app.local
+  acl host_one_webapp hdr(host) -i one-alt.app.local
+  acl host_one_webapp hdr(host) -i one-another-alt.app.local
   acl host_two_webapp hdr(host) -i two.app.local
 
   use_backend one_webapp_cluster if host_one_webapp
