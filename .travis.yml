@@ -2,7 +2,7 @@ sudo: false
 language: go
 go:
 - 1.4.1
-before_deploy: make release
+before_deploy: make package
 deploy:
   provider: releases
   api_key:
@@ -11,6 +11,8 @@ deploy:
   file:
     - proxym_linux_386
     - proxym_linux_amd64
+    - proxym_$(TRAVIS_TAG)_i386.deb
+    - proxym_$(TRAVIS_TAG)_amd64.deb
   on:
     all_branches: true
     repo: wndhydrnt/proxym

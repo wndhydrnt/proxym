@@ -82,7 +82,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	generator := Generator{
 		httpClient:     c,
 		domainStrategy: func(id string) string { return id },
-		config:         &Config{MarathonServers: []string{ts.URL}},
+		config:         &Config{Servers: ts.URL},
 	}
 
 	services, _ := generator.Generate()
@@ -137,4 +137,12 @@ func TestIdToDomainReverse(t *testing.T) {
 	domain = IdToDomainReverse("/com/example/redis")
 
 	require.Equal(t, "redis.example.com", domain)
+}
+
+func TestLastPartOfIdAndSuffix(t *testing.T) {
+	g := LastPartOfIdAndSuffix{suffix: "example.com"}
+
+	domain := g.ToDomain("/group/service")
+
+	require.Equal(t, "service.example.com", domain)
 }

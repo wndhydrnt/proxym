@@ -1,27 +1,17 @@
 package main
 
 import (
-	"github.com/wndhydrnt/proxym/file"
-	"github.com/wndhydrnt/proxym/haproxy"
+	_ "github.com/wndhydrnt/proxym/file"
+	_ "github.com/wndhydrnt/proxym/haproxy"
 	"github.com/wndhydrnt/proxym/manager"
-	"github.com/wndhydrnt/proxym/marathon"
-	proxymSignal "github.com/wndhydrnt/proxym/signal"
+	_ "github.com/wndhydrnt/proxym/marathon"
+	_ "github.com/wndhydrnt/proxym/signal"
 	"log"
 	"os"
 	"os/signal"
 )
 
 func main() {
-	manager.AddNotifier(marathon.NewNotifier())
-	manager.AddNotifier(proxymSignal.NewNotifier())
-
-	msg := marathon.NewServiceGenerator(marathon.IdToDomainReverse)
-
-	manager.AddServiceGenerator(msg)
-	manager.AddServiceGenerator(file.NewServiceGenerator())
-
-	manager.AddConfigGenerator(haproxy.NewGenerator())
-
 	go manager.Run()
 
 	sc := make(chan os.Signal, 1)

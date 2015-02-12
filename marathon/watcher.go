@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 // Receives messages via the HTTP event bus of Marathon.
@@ -26,16 +27,19 @@ func (wt *Watcher) Start(refresh chan string) {
 		http.ListenAndServe(fmt.Sprintf("%s:%s", wt.config.HttpHost, wt.config.HttpPort), nil)
 	}()
 
-	server := wt.config.MarathonServers[0]
+	server := strings.Split(wt.config.Servers, ",")[0]
 
 	callbackUrl := fmt.Sprintf("http://%s:%s%s", wt.config.HttpHost, wt.config.HttpPort, wt.config.Endpoint)
 
 	url := fmt.Sprintf("%s%s?callbackUrl=%s", server, eventubscriptionsEndpoint, callbackUrl)
 
-	resp, _ := wt.httpClient.Post(url, contentType, bytes.NewBufferString(""))
+	resp, err := wt.httpClient.Post(url, contentType, bytes.NewBufferString(""))
+	if err != nil {
+		log.Printf("marathon.Watcher.Start: Error registering callback with Marathon '%s'", err)
+	}
 
 	if resp.StatusCode != 200 {
-		log.Fatal(fmt.Sprintf("Unable to register callback with Marathon server '%s'", server))
+		log.Fatal(fmt.Sprintf("marathon.Watcher.Start: Unable to register callback with Marathon server '%s'", server))
 	}
 }
 
