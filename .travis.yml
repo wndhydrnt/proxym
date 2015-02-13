@@ -11,8 +11,8 @@ deploy:
   file:
     - proxym_linux_386
     - proxym_linux_amd64
-    - proxym_$(TRAVIS_TAG)_i386.deb
-    - proxym_$(TRAVIS_TAG)_amd64.deb
+    - proxym_${TRAVIS_TAG}_i386.deb
+    - proxym_${TRAVIS_TAG}_amd64.deb
   on:
     all_branches: true
     repo: wndhydrnt/proxym
