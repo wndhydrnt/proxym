@@ -59,7 +59,7 @@ The level of `AppLog` is configurable while the level of `ErrorLog` is `ERROR`.
 Environment variables:
 
 Name | Required | Default
----- + -------- + -------
+---- | -------- | -------
 PROXYM_LOG_APPLOG_LEVEL | no | `INFO`
 PROXYM_LOG_FORMAT | no | `%{time:02.01.2006 15:04:05} [%{level}] %{longfunc}: %{message}`
 
