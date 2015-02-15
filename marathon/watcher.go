@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/wndhydrnt/proxym/log"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -35,11 +35,12 @@ func (wt *Watcher) Start(refresh chan string) {
 
 	resp, err := wt.httpClient.Post(url, contentType, bytes.NewBufferString(""))
 	if err != nil {
-		log.Printf("marathon.Watcher.Start: Error registering callback with Marathon '%s'", err)
+		log.ErrorLog.Error("Error registering callback with Marathon '%s' - disabling module 'Marathon'", err)
+		return
 	}
 
 	if resp.StatusCode != 200 {
-		log.Fatal(fmt.Sprintf("marathon.Watcher.Start: Unable to register callback with Marathon server '%s'", server))
+		log.ErrorLog.Error("Unable to register callback with Marathon server '%s' - disabling module 'Marathon'", server)
 	}
 }
 
@@ -48,19 +49,20 @@ func (wt *Watcher) callbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Println("marathon.Watcher.callbackHandler: Error reading Marathon event")
+		log.ErrorLog.Error("Error reading Marathon event '%s'", err)
 		return
 	}
 
 	err = json.Unmarshal(body, &event)
 	if err != nil {
-		log.Println("marathon.Watcher.callbackHandler: Error unmarshalling Marathon event")
+		log.ErrorLog.Error("Error unmarshalling Marathon event '%s'", err)
 		return
 	}
 
 	if event.EventType == "status_update_event" {
 		select {
 		case wt.refreshChannel <- "refresh":
+			log.AppLog.Info("Triggering refresh")
 		default:
 		}
 	}

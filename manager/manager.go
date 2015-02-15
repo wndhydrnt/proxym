@@ -3,8 +3,8 @@
 package manager
 
 import (
+	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/types"
-	"log"
 )
 
 // Manager orchestrates Notifiers, ServiceGenerators and ConfigGenerators.
@@ -48,7 +48,7 @@ func (m *Manager) Run() {
 		for _, sg := range m.serviceGenerators {
 			svrs, err := sg.Generate()
 			if err != nil {
-				log.Printf("manager.Manager.Run: Error generating services: '%s'", err)
+				log.ErrorLog.Error("Error generating services: '%s'", err)
 				continue
 			}
 

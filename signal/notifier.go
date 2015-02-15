@@ -2,6 +2,7 @@ package signal
 
 import (
 	"github.com/kelseyhightower/envconfig"
+	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/manager"
 	"os"
 	"os/signal"
@@ -21,6 +22,7 @@ func (n *Notifier) Start(refresh chan string) {
 	signal.Notify(c, syscall.SIGUSR1)
 
 	for _ = range c {
+		log.AppLog.Info("Triggering refresh")
 		refresh <- "refresh"
 	}
 }
