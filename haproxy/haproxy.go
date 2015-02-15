@@ -22,10 +22,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/manager"
 	"github.com/wndhydrnt/proxym/types"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -56,7 +56,8 @@ func (h *HAProxyGenerator) Generate(services []types.Service) {
 
 	f, err := os.Create(h.c.ConfigFilePath)
 	if err != nil {
-		log.Printf("haproxy.HAProxyGenerator.Generate: Error opening config file for reading '%s': %s", h.c.ConfigFilePath, err)
+
+		log.ErrorLog.Error("Unable to open config file for reading '%s': %s", h.c.ConfigFilePath, err)
 		return
 	}
 
@@ -64,7 +65,7 @@ func (h *HAProxyGenerator) Generate(services []types.Service) {
 
 	_, err = f.WriteString(newConfig)
 	if err != nil {
-		log.Printf("haproxy.HAProxyGenerator.Generate: Error writing config file '%s': %s", h.c.ConfigFilePath, err)
+		log.ErrorLog.Error("Unable to write config file '%s': %s", h.c.ConfigFilePath, err)
 		return
 	}
 
@@ -80,10 +81,12 @@ func (h *HAProxyGenerator) Generate(services []types.Service) {
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
 
+	log.AppLog.Info("Restarting HAProxy")
+
 	err = cmd.Run()
 	if err != nil {
-		log.Printf("haproxy.HAProxyGenerator.Generate: Error starting HAProxy: %s", err)
-		log.Printf("haproxy.HAProxyGenerator.Generate: HAProxy Stderr: %s", cmdErr.String())
+		log.ErrorLog.Error("Failed to start HAProxy: %s", err)
+		log.ErrorLog.Error("HAProxy Stderr: %s", cmdErr.String())
 	}
 }
 
@@ -105,7 +108,8 @@ func (h *HAProxyGenerator) config(services []types.Service) string {
 
 	globalConfig, err := readExistingFile(h.c.OptionsPath + "/global.cfg")
 	if err != nil {
-		log.Printf("haproxy.HAProxyGenerator.httpConfig: Error reading global config. Stopping HAProxy config generator: %s", err)
+		log.ErrorLog.Error("Unable to read global config. Stopping HAProxy config generator: %s", err)
+		return ""
 	}
 
 	httpConfig := h.httpConfig(httpServices)
@@ -135,7 +139,7 @@ func (h *HAProxyGenerator) httpConfig(services []types.Service) string {
 
 		additionalDomains, err := h.readDomains(service.Domain, service.ServicePort)
 		if err != nil {
-			log.Printf("haproxy.HAProxyGenerator.httpConfig: Error reading domains file: '%s'", err)
+			log.ErrorLog.Error("Error reading domains file: '%s'", err)
 		}
 
 		for _, d := range additionalDomains {
@@ -160,7 +164,7 @@ func (h *HAProxyGenerator) httpConfig(services []types.Service) string {
 
 		optionData, err := h.readConfig(service.Domain, service.ServicePort)
 		if err != nil {
-			log.Printf("haproxy.HAProxyGenerator.httpConfig: Error reading options file: '%s'", err)
+			log.ErrorLog.Error("Error reading options file: '%s'", err)
 		}
 
 		for _, option := range h.sanitizeOptions(optionData) {
@@ -188,7 +192,7 @@ func (h *HAProxyGenerator) tcpConfig(services []types.Service) string {
 
 		optionData, err := h.readConfig(service.Domain, service.ServicePort)
 		if err != nil {
-			log.Println("haproxy.HAProxyGenerator.tcpConfig: Error reading options file: '%s'", err)
+			log.ErrorLog.Error("Error reading options file: '%s'", err)
 		}
 
 		for _, option := range h.sanitizeOptions(optionData) {

@@ -19,36 +19,49 @@ However, its design makes it easy to integrate with systems other than [Marathon
 The `proxym` executable itself is meant to run alongside a process of a reverse proxy (e.g. HAProxy), reloading its
 configuration whenever it recognizes a change in an outside system.
 
-It takes a modular approach by dividing responsibility into three parts: [Notifiers](), [ServiceGenerators]() and
-[ConfigGenerators]().
+It takes a modular approach by dividing responsibility into three parts:
+[Notifiers](http://godoc.org/github.com/wndhydrnt/proxym/types#Notifier),
+[ServiceGenerators](http://godoc.org/github.com/wndhydrnt/proxym/types#ServiceGenerator) and
+[ConfigGenerators](http://godoc.org/github.com/wndhydrnt/proxym/types#ConfigGenerator).
 
 ## Modules
 
-### Notifiers
+### File
 
-#### Marathon
+Defines a ServiceGenerator that reads configuration from files.
+Configuration files are written in JSON.
 
-Registers a callback with the [event bus](https://mesosphere.github.io/marathon/docs/event-bus.html) of Marathon and
-triggers a refresh whenever it receives a `status_update_event`.
+### HAProxy
 
-#### Signal
+Takes [Service](http://godoc.org/github.com/wndhydrnt/proxym/types#Service)s and writes the configuration file HAProxy,
+restarting it in case the configuration has changed.
 
-Triggers a refresh whenever the process receives a `SIGHUP` signal. The signal can be send by software such as Ansible,
-Chef or Puppet.
+### Marathon
 
-### Service generators
+Provides a Notifier that registers a callback with the [event bus](https://mesosphere.github.io/marathon/docs/event-bus.html)
+of Marathon and triggers a refresh whenever it receives a `status_update_event`.
 
-#### File
-
-Reads configuration from files.
-
-#### Marathon
-
-Creates services by querying Marathon for [applications](https://mesosphere.github.io/marathon/docs/rest-api.html#get-/v2/apps) and
+A ServiceGenerator queries Marathon for [applications](https://mesosphere.github.io/marathon/docs/rest-api.html#get-/v2/apps) and
 [tasks](https://mesosphere.github.io/marathon/docs/rest-api.html#get-/v2/tasks).
 
-### Config Generators
+### Signal
 
-#### HAProxy
+Triggers a refresh whenever the process receives a `SIGUSR1` signal. The signal can be send by software such as Ansible,
+Chef or Puppet.
 
-Takes services and writes the configuration file HAProxy, restarting it in case the configuration has changed.
+## Logging
+
+The [log](./log/log.go) package defines the loggers `AppLog`, which writes to `STDOUT`, and `ErrorLog`, which writes
+`STDERR`.
+
+The level of `AppLog` is configurable while the level of `ErrorLog` is `ERROR`.
+
+Environment variables:
+
+Name | Required | Default
+---- + -------- + -------
+PROXYM_LOG_APPLOG_LEVEL | no | `INFO`
+PROXYM_LOG_FORMAT | no | `%{time:02.01.2006 15:04:05} [%{level}] %{longfunc}: %{message}`
+
+All available format options can be found in the [docs](http://godoc.org/github.com/op/go-logging#NewStringFormatter)
+of `go-logging`.
