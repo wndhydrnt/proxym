@@ -6,6 +6,10 @@ Features:
 
 * Introduce application and error loggers
 
+Improvements:
+
+* Trigger a refresh right after startup
+
 ## 1.1.0
 
 Improvements:

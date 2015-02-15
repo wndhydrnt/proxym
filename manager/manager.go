@@ -42,22 +42,28 @@ func (m *Manager) Run() {
 	for _, notifier := range m.notifiers {
 		go notifier.Start(m.refresh)
 	}
+	// Refresh right on startup
+	m.process()
 
 	for _ = range m.refresh {
-		var services []types.Service
-		for _, sg := range m.serviceGenerators {
-			svrs, err := sg.Generate()
-			if err != nil {
-				log.ErrorLog.Error("Error generating services: '%s'", err)
-				continue
-			}
+		m.process()
+	}
+}
 
-			services = append(services, svrs...)
+func (m *Manager) process() {
+	var services []types.Service
+	for _, sg := range m.serviceGenerators {
+		svrs, err := sg.Generate()
+		if err != nil {
+			log.ErrorLog.Error("Error generating services: '%s'", err)
+			continue
 		}
 
-		for _, cg := range m.configGenerators {
-			cg.Generate(services)
-		}
+		services = append(services, svrs...)
+	}
+
+	for _, cg := range m.configGenerators {
+		cg.Generate(services)
 	}
 }
 
