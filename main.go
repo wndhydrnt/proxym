@@ -6,6 +6,7 @@ import (
 	proxymLog "github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/manager"
 	_ "github.com/wndhydrnt/proxym/marathon"
+	_ "github.com/wndhydrnt/proxym/mesos_master"
 	_ "github.com/wndhydrnt/proxym/signal"
 	"os"
 	"os/signal"

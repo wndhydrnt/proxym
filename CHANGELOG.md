@@ -5,6 +5,7 @@
 Features:
 
 * Introduce application and error loggers
+* Mesos Master module
 
 Improvements:
 
