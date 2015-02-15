@@ -17,3 +17,4 @@ deploy:
     all_branches: true
     repo: wndhydrnt/proxym
     tags: true
+after_deploy: make clean
