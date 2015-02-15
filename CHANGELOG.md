@@ -10,6 +10,7 @@ Features:
 Improvements:
 
 * Trigger a refresh right after startup
+* Simplified Upstart script
 
 ## 1.1.0
 
