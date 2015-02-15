@@ -44,6 +44,22 @@ of Marathon and triggers a refresh whenever it receives a `status_update_event`.
 A ServiceGenerator queries Marathon for [applications](https://mesosphere.github.io/marathon/docs/rest-api.html#get-/v2/apps) and
 [tasks](https://mesosphere.github.io/marathon/docs/rest-api.html#get-/v2/tasks).
 
+### Mesos Master
+
+A Notifier that constantly polls Mesos masters, extracts the current leader and triggers a refresh in case the leader
+has changed.
+
+A ServiceGenerator that queries Mesos masters, extracts the current leader and emits a service.
+
+Environment variables:
+
+Name | Description | Required | Default
+---- | ----------- | -------- | -------
+PROXYM_MESOS_MASTER_DOMAIN | The value to set as the `Domain` field in the [Service](http://godoc.org/github.com/wndhydrnt/proxym/types#Service) struct. | yes | None
+PROXYM_MESOS_MASTER_ENABLED | Enable the module. | no | 0
+PROXYM_MESOS_MASTER_MASTERS | Addresses of Mesos master separated by commas: `http://master1:5050,http://master2:5050,...` | yes | None
+PROXYM_MESOS_MASTER_POLL_INTERVAL | Time between two calls to one of the Mesos masters (in seconds). | no | 10
+
 ### Signal
 
 Triggers a refresh whenever the process receives a `SIGUSR1` signal. The signal can be send by software such as Ansible,
