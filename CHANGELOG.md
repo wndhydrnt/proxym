@@ -1,13 +1,30 @@
 # Changelog
 
+## 1.2.0 (unreleased)
+
+Features:
+
+* Introduce application and error loggers
+
+Improvements:
+
+* Trigger a refresh right after startup
+
 ## 1.1.0
+
+Improvements:
 
 * Assign additional domains to a service in the config of HAProxy
 
 ## 1.0.1
 
-* Align usage of environment variables
+Features:
+
 * Create debian package during release process
+
+Improvements:
+
+* Align usage of environment variables
 
 ## 1.0.0
 
