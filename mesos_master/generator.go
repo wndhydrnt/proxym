@@ -24,7 +24,7 @@ func (m *MesosMasterServiceGenerator) Generate() ([]types.Service, error) {
 	}
 
 	service := types.Service{
-		Domain:      "mesos-master",
+		Domain:      m.config.Domain,
 		Hosts:       []types.Host{host},
 		Id:          "/mesos-master",
 		Protocol:    "tcp",

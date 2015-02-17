@@ -10,7 +10,7 @@ import (
 )
 
 func TestShouldGenerateOneService(t *testing.T) {
-	domain := "mesos-master"
+	domain := "mesos.example.com"
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" && r.RequestURI == "/master/state.json" {
