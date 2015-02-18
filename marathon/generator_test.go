@@ -129,6 +129,63 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[4].Hosts[0].Port, 31003)
 }
 
+func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" && r.RequestURI == "/v2/apps" {
+			marathonApps := Apps{
+				Apps: []App{
+					App{
+						Id: "/dummy",
+						Container: Container{
+							Docker: Docker{
+								PortMappings: []PortMapping{},
+							},
+						},
+					},
+				},
+			}
+
+			data, err := json.Marshal(marathonApps)
+			if err != nil {
+				log.Fatal("Error marshalling apps")
+			}
+
+			w.Write(data)
+			return
+		}
+
+		if r.Method == "GET" && r.RequestURI == "/v2/tasks" {
+			marathonTasks := Tasks{
+				Tasks: []Task{
+					Task{AppId: "/dummy", Host: "10.10.10.10", Ports: []int{}, ServicePorts: []int{}},
+				},
+			}
+
+			data, err := json.Marshal(marathonTasks)
+			if err != nil {
+				log.Fatal("Error marshalling tasks")
+			}
+
+			w.Write(data)
+			return
+		}
+	}))
+
+	defer ts.Close()
+
+	c := &http.Client{}
+
+	generator := Generator{
+		httpClient:     c,
+		domainStrategy: func(id string) string { return id },
+		config:         &Config{Servers: ts.URL},
+	}
+
+	services, _ := generator.Generate()
+
+	require.Empty(t, services)
+}
+
 func TestIdToDomainReverse(t *testing.T) {
 	domain := IdToDomainReverse("/redis")
 
