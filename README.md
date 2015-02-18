@@ -33,8 +33,8 @@ Configuration files are written in JSON.
 
 ### HAProxy
 
-Takes [Service](http://godoc.org/github.com/wndhydrnt/proxym/types#Service)s and writes the configuration file HAProxy,
-restarting it in case the configuration has changed.
+Takes a list of [Services](http://godoc.org/github.com/wndhydrnt/proxym/types#Service) and writes the configuration file
+of HAProxy, restarting it in case the configuration has changed.
 
 ### Marathon
 
@@ -49,7 +49,7 @@ A ServiceGenerator queries Marathon for [applications](https://mesosphere.github
 A Notifier that constantly polls Mesos masters, extracts the current leader and triggers a refresh in case the leader
 has changed.
 
-A ServiceGenerator that queries Mesos masters, extracts the current leader and emits a service.
+A ServiceGenerator that queries Mesos masters, extracts the current leader and emits a Service.
 
 Environment variables:
 
@@ -80,4 +80,4 @@ PROXYM_LOG_APPLOG_LEVEL | no | `INFO`
 PROXYM_LOG_FORMAT | no | `%{time:02.01.2006 15:04:05} [%{level}] %{longfunc}: %{message}`
 
 All available format options can be found in the [docs](http://godoc.org/github.com/op/go-logging#NewStringFormatter)
-of `go-logging`.
+of [go-logging](https://github.com/op/go-logging).
