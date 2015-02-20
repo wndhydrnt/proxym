@@ -157,7 +157,7 @@ func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
 		if r.Method == "GET" && r.RequestURI == "/v2/tasks" {
 			marathonTasks := Tasks{
 				Tasks: []Task{
-					Task{AppId: "/dummy", Host: "10.10.10.10", Ports: []int{}, ServicePorts: []int{}},
+					Task{AppId: "/dummy", Host: "10.10.10.10", Ports: []int{10001}, ServicePorts: []int{31681}},
 				},
 			}
 

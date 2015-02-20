@@ -2,6 +2,12 @@
 
 ## 1.3.0 (unreleased)
 
+## 1.2.2
+
+Bugfixes:
+
+* Fix panic due to Marathon ServiceGenerator processing tasks without any ports
+
 ## 1.2.1
 
 Bugfixes:

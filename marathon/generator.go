@@ -69,6 +69,11 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []types.Service
 				continue
 			}
 
+			// Skip because this app does not expose any ports.
+			if len(app.Container.Docker.PortMappings) == 0 {
+				continue
+			}
+
 			service, index := appInServices(task.AppId, task.ServicePorts[i], services)
 
 			host := types.Host{Ip: task.Host, Port: port}
