@@ -2,6 +2,12 @@
 
 ## 1.3.0 (unreleased)
 
+## 1.2.1
+
+Bugfixes:
+
+* Configured domain not recognized in mesos_master module
+
 ## 1.2.0
 
 Features:
