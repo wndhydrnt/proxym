@@ -12,9 +12,8 @@ import (
 
 // Generator talks to Marathon and creates a list of services as a result.
 type Generator struct {
-	config         *Config
-	domainStrategy func(string) string
-	httpClient     *http.Client
+	config     *Config
+	httpClient *http.Client
 }
 
 // Queries a Marathon master to receive running applications and tasks and generates a list of services.
@@ -24,7 +23,10 @@ func (g *Generator) Generate() ([]types.Service, error) {
 
 	server := strings.Split(g.config.Servers, ",")[0]
 
-	resp, err := g.httpClient.Get(fmt.Sprintf("%s%s", server, appsEndpoint))
+	req, _ := http.NewRequest("GET", fmt.Sprintf("%s%s", server, appsEndpoint), nil)
+	req.Header.Add("Accept", "application/json")
+
+	resp, err := g.httpClient.Do(req)
 	if err != nil {
 		return []types.Service{}, err
 	}
@@ -40,7 +42,10 @@ func (g *Generator) Generate() ([]types.Service, error) {
 		return []types.Service{}, err
 	}
 
-	resp, err = g.httpClient.Get(fmt.Sprintf("%s%s", server, tasksEndpoint))
+	req, _ = http.NewRequest("GET", fmt.Sprintf("%s%s", server, tasksEndpoint), nil)
+	req.Header.Add("Accept", "application/json")
+
+	resp, err = g.httpClient.Do(req)
 	if err != nil {
 		return []types.Service{}, err
 	}
@@ -74,7 +79,9 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []types.Service
 				continue
 			}
 
-			service, index := appInServices(task.AppId, task.ServicePorts[i], services)
+			containerPort := app.Container.Docker.PortMappings[i].ContainerPort
+
+			service, index := appInServices(task.AppId, containerPort, services)
 
 			host := types.Host{Ip: task.Host, Port: port}
 
@@ -82,9 +89,11 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []types.Service
 
 			if index == -1 {
 				service.Id = task.AppId
-				service.Domain = g.domainStrategy(task.AppId)
-				service.ServicePort = task.ServicePorts[i]
+				service.Domain = ""
+				service.Port = containerPort
 				service.Protocol = app.Container.Docker.PortMappings[i].Protocol
+				service.ServicePort = task.ServicePorts[i]
+				service.Source = "Marathon"
 				services = append(services, service)
 			} else {
 				services[index] = service
@@ -97,7 +106,7 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []types.Service
 
 func appInServices(app string, port int, services []types.Service) (types.Service, int) {
 	for i, service := range services {
-		if service.Id == app && service.ServicePort == port {
+		if service.Id == app && service.Port == port {
 			return service, i
 		}
 	}
@@ -113,30 +122,4 @@ func appOfTask(apps Apps, task Task) (App, error) {
 	}
 
 	return App{}, errors.New(fmt.Sprintf("No app for task '%s' found", task.AppId))
-}
-
-// Helper function that takes the Id of a task and creates a domain out of it by reversing its elements.
-// '/com/example/webapp' will be turned into 'webapp.example.com'.
-func IdToDomainReverse(id string) string {
-	var domainParts []string
-
-	// First item is always empty due to leading '/'. Remove it here.
-	parts := strings.Split(id[1:], "/")
-
-	for _, part := range parts {
-		domainParts = append([]string{part}, domainParts...)
-	}
-
-	return strings.Join(domainParts, ".")
-}
-
-type LastPartOfIdAndSuffix struct {
-	suffix string
-}
-
-func (l *LastPartOfIdAndSuffix) ToDomain(id string) string {
-	// First item is always empty due to leading '/'. Remove it here.
-	parts := strings.Split(id[1:], "/")
-
-	return parts[len(parts)-1] + "." + l.suffix
 }

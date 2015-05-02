@@ -1,22 +1,9 @@
-// This module consists of a Notifier and a ServiceGenerator to integrate services running on Mesos and scheduled by
-// Marathon.
-//
-// It expects the following environment varibales to be set:
-//
-// MARATHON_CALLBACK_HOST - The IP the Marathon event receiver uses to bind to
-//
-// MARATHON_CALLBACK_PORT - The port the Marathon event receiver uses to bind to
-//
-// MARATHON_CALLBACK_ENDPOINT - The path to the resource which gets registered with Marathon
-//
-// MARATHON_SERVERS - A list of Marathon servers separated by commas. Format '<IP>:<PORT>,<IP>:<PORT>,...'
 package marathon
 
 import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/wndhydrnt/proxym/manager"
 	"net/http"
-	"os"
 )
 
 const (
@@ -63,8 +50,9 @@ type Event struct {
 
 // The port mapping of a Docker container as returend by the Marathon REST API.
 type PortMapping struct {
-	Protocol    string
-	ServicePort int
+	ContainerPort int
+	Protocol      string
+	ServicePort   int
 }
 
 // A task as returend by the Marathon REST API.
@@ -91,30 +79,13 @@ func NewNotifier(c *Config) *Watcher {
 }
 
 // Creates and returns a new ServiceGenerator.
-func NewServiceGenerator(c *Config, domainStrategy func(string) string) *Generator {
+func NewServiceGenerator(c *Config) *Generator {
 	httpClient := &http.Client{}
 
 	return &Generator{
-		config:         c,
-		domainStrategy: domainStrategy,
-		httpClient:     httpClient,
+		config:     c,
+		httpClient: httpClient,
 	}
-}
-
-func domainStrategy() func(string) string {
-	s := os.Getenv("PROXYM_MARATHON_DOMAIN_STRATEGY")
-
-	if s == "LastPartOfIdAndSuffix" {
-		l := LastPartOfIdAndSuffix{suffix: os.Getenv("PROXYM_MARATHON_DOMAIN_SUFFIX")}
-
-		return l.ToDomain
-	}
-
-	if s == "IdToDomainReverse" {
-		return IdToDomainReverse
-	}
-
-	return IdToDomainReverse
 }
 
 func init() {
@@ -127,9 +98,7 @@ func init() {
 
 		manager.AddNotifier(n)
 
-		ds := domainStrategy()
-
-		sg := NewServiceGenerator(&c, ds)
+		sg := NewServiceGenerator(&c)
 
 		manager.AddServiceGenerator(sg)
 	}

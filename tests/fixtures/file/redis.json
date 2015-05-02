@@ -2,7 +2,7 @@
   "domain": "redis.example.com",
   "id": "/redis",
   "protocol": "tcp",
-  "servicePort": 6379,
+  "port": 6379,
   "hosts": [
     {"ip": "10.10.10.10", "port": 31001},
     {"ip": "10.10.10.10", "port": 31003}

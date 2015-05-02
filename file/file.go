@@ -1,8 +1,3 @@
-// This module expects the following environment variables:
-//
-// PROXYM_FILE_CONFIGS_PATH - Absolute path to the location of the JSON configuration files.
-//
-// PROXYM_FILE_ENABLED - Enable this module.
 package file
 
 import (
@@ -47,6 +42,8 @@ func (sg *ServiceGenerator) Generate() ([]types.Service, error) {
 		if err != nil {
 			return services, err
 		}
+
+		service.Source = "File"
 
 		services = append(services, service)
 	}
