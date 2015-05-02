@@ -24,10 +24,10 @@ listen docker_registry :5000
 `
 
 	redis := types.Service{
-		Domain:      "redis.test.local",
-		Id:          "/redis",
-		Protocol:    "tcp",
-		ServicePort: 6379,
+		Domain:   "redis.test.local",
+		Id:       "/redis",
+		Protocol: "tcp",
+		Port:     6379,
 		Hosts: []types.Host{
 			types.Host{Ip: "10.10.10.10", Port: 31001},
 			types.Host{Ip: "10.10.10.11", Port: 31002},
@@ -35,9 +35,9 @@ listen docker_registry :5000
 	}
 
 	registry := types.Service{
-		Id:          "/docker/registry",
-		Protocol:    "tcp",
-		ServicePort: 5000,
+		Id:       "/docker/registry",
+		Protocol: "tcp",
+		Port:     5000,
 		Hosts: []types.Host{
 			types.Host{Ip: "10.10.10.10", Port: 31002},
 		},
@@ -86,10 +86,10 @@ backend two_webapp_cluster
 `
 
 	webappOne := types.Service{
-		Domain:      "one.app.local",
-		Id:          "/one/webapp",
-		Protocol:    "tcp",
-		ServicePort: 80,
+		Domain:   "one.app.local",
+		Id:       "/one/webapp",
+		Protocol: "tcp",
+		Port:     80,
 		Hosts: []types.Host{
 			types.Host{Ip: "10.10.10.12", Port: 31005},
 			types.Host{Ip: "10.10.10.11", Port: 31002},
@@ -97,10 +97,10 @@ backend two_webapp_cluster
 	}
 
 	webappTwo := types.Service{
-		Domain:      "two.app.local",
-		Id:          "/two/webapp",
-		Protocol:    "tcp",
-		ServicePort: 80,
+		Domain:   "two.app.local",
+		Id:       "/two/webapp",
+		Protocol: "tcp",
+		Port:     80,
 		Hosts: []types.Host{
 			types.Host{Ip: "10.10.10.10", Port: 31002},
 		},

@@ -95,7 +95,9 @@ func (h *HAProxyGenerator) config(services []types.Service) string {
 	var tcpServices []types.Service
 
 	for _, service := range services {
-		if service.Protocol == "tcp" && service.ServicePort == h.c.HttpPort {
+		haproxyProtocol, _ := h.readProtocol(service.Domain, service.Port)
+
+		if service.Protocol == "tcp" && haproxyProtocol == "http" {
 			httpServices = append(httpServices, service)
 			continue
 		}
@@ -137,7 +139,7 @@ func (h *HAProxyGenerator) httpConfig(services []types.Service) string {
 		aclLine := fmt.Sprintf("  acl host_%s hdr(host) -i %s", name, service.Domain)
 		aclLines = append(aclLines, aclLine)
 
-		additionalDomains, err := h.readDomains(service.Domain, service.ServicePort)
+		additionalDomains, err := h.readDomains(service.Domain, service.Port)
 		if err != nil {
 			log.ErrorLog.Error("Error reading domains file: '%s'", err)
 		}
@@ -162,7 +164,7 @@ func (h *HAProxyGenerator) httpConfig(services []types.Service) string {
 
 		buffer.WriteString(fmt.Sprintf("backend %s_cluster\n", name))
 
-		optionData, err := h.readConfig(service.Domain, service.ServicePort)
+		optionData, err := h.readConfig(service.Domain, service.Port)
 		if err != nil {
 			log.ErrorLog.Error("Error reading options file: '%s'", err)
 		}
@@ -187,10 +189,10 @@ func (h *HAProxyGenerator) tcpConfig(services []types.Service) string {
 
 	for _, service := range services {
 		name := h.generateName(service.Id)
-		header := fmt.Sprintf("\nlisten %s :%d\n  mode tcp\n", name, service.ServicePort)
+		header := fmt.Sprintf("\nlisten %s :%d\n  mode tcp\n", name, service.Port)
 		buffer.WriteString(header)
 
-		optionData, err := h.readConfig(service.Domain, service.ServicePort)
+		optionData, err := h.readConfig(service.Domain, service.Port)
 		if err != nil {
 			log.ErrorLog.Error("Error reading options file: '%s'", err)
 		}
@@ -289,6 +291,29 @@ func (h *HAProxyGenerator) readDomains(domain string, port int) ([]string, error
 		sanitizedContent := strings.Trim(string(content), "\n")
 
 		return strings.Split(sanitizedContent, "\n"), nil
+	}
+}
+
+func (h *HAProxyGenerator) readProtocol(domain string, port int) (string, error) {
+	protocolPath := fmt.Sprintf("%s/%s_%d/protocol", h.c.OptionsPath, domain, port)
+
+	_, err := os.Stat(protocolPath)
+	if err != nil {
+		return "", nil
+	} else {
+		f, err := os.Open(protocolPath)
+		if err != nil {
+			return "", err
+		}
+
+		defer f.Close()
+
+		protocol, err := ioutil.ReadAll(f)
+		if err != nil {
+			return "", err
+		}
+
+		return string(protocol), nil
 	}
 }
 

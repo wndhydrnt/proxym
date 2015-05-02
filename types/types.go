@@ -16,16 +16,16 @@ type ServiceGenerator interface {
 	Generate() ([]Service, error)
 }
 
-// A host is an IP and a port that traffic should be proxied to.
+// A host is an IP and a port where traffic should be proxied to.
 type Host struct {
 	Ip   string
 	Port int
 }
 
 type Service struct {
-	Domain      string
-	Hosts       []Host
-	Id          string
-	Protocol    string
-	ServicePort int
+	Domain   string
+	Hosts    []Host
+	Id       string
+	Port     int
+	Protocol string
 }
