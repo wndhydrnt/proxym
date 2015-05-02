@@ -24,7 +24,10 @@ func (g *Generator) Generate() ([]types.Service, error) {
 
 	server := strings.Split(g.config.Servers, ",")[0]
 
-	resp, err := g.httpClient.Get(fmt.Sprintf("%s%s", server, appsEndpoint))
+	req, _ := http.NewRequest("GET", fmt.Sprintf("%s%s", server, appsEndpoint), nil)
+	req.Header.Add("Accept", "application/json")
+
+	resp, err := g.httpClient.Do(req)
 	if err != nil {
 		return []types.Service{}, err
 	}
@@ -40,7 +43,10 @@ func (g *Generator) Generate() ([]types.Service, error) {
 		return []types.Service{}, err
 	}
 
-	resp, err = g.httpClient.Get(fmt.Sprintf("%s%s", server, tasksEndpoint))
+	req, _ = http.NewRequest("GET", fmt.Sprintf("%s%s", server, tasksEndpoint), nil)
+	req.Header.Add("Accept", "application/json")
+
+	resp, err = g.httpClient.Do(req)
 	if err != nil {
 		return []types.Service{}, err
 	}

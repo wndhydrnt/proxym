@@ -12,7 +12,7 @@ import (
 
 func TestServicesFromMarathon(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" && r.RequestURI == "/v2/apps" {
+		if r.Method == "GET" && r.RequestURI == "/v2/apps" && r.Header.Get("Accept") == "application/json" {
 			marathonApps := Apps{
 				Apps: []App{
 					App{
@@ -55,7 +55,7 @@ func TestServicesFromMarathon(t *testing.T) {
 			return
 		}
 
-		if r.Method == "GET" && r.RequestURI == "/v2/tasks" {
+		if r.Method == "GET" && r.RequestURI == "/v2/tasks" && r.Header.Get("Accept") == "application/json" {
 			marathonTasks := Tasks{
 				Tasks: []Task{
 					Task{AppId: "/redis", Host: "10.10.10.10", Ports: []int{31001}, ServicePorts: []int{6379}},
