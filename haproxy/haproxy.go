@@ -9,12 +9,10 @@
 //
 // PROXYM_HAPROXY_ENABLED - Enable this module.
 //
-// PROXYM_HAPROXY_HTTP_PORT - Define the port under which applications available via HTTP will be reachable. This is usually 80.
-//
 // PROXYM_HAPROXY_OPTIONS_PATH - An absolute path to a file where 'global' options and 'default's of HAProxy are stored. The
-//                        content of this file prepended to the rest of the config.
+//                               content of this file prepended to the rest of the config.
 //
-// PROXYM_HAPROXY_PID_PATH - An absolute where HAProxy stores its PID.
+// PROXYM_HAPROXY_PID_PATH - An absolute path where HAProxy stores its PID.
 package haproxy
 
 import (
@@ -95,9 +93,10 @@ func (h *HAProxyGenerator) config(services []types.Service) string {
 	var tcpServices []types.Service
 
 	for _, service := range services {
+
 		haproxyProtocol, _ := h.readProtocol(service.Domain, service.Port)
 
-		if service.Protocol == "tcp" && haproxyProtocol == "http" {
+		if service.Protocol == "tcp" && strings.TrimSpace(haproxyProtocol) == "http" {
 			httpServices = append(httpServices, service)
 			continue
 		}
@@ -189,7 +188,7 @@ func (h *HAProxyGenerator) tcpConfig(services []types.Service) string {
 
 	for _, service := range services {
 		name := h.generateName(service.Id)
-		header := fmt.Sprintf("\nlisten %s :%d\n  mode tcp\n", name, service.Port)
+		header := fmt.Sprintf("\nlisten %s :%d\n  mode tcp\n", name, service.ListenPort())
 		buffer.WriteString(header)
 
 		optionData, err := h.readConfig(service.Domain, service.Port)

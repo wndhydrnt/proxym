@@ -63,8 +63,9 @@ type Event struct {
 
 // The port mapping of a Docker container as returend by the Marathon REST API.
 type PortMapping struct {
-	Protocol    string
-	ServicePort int
+	ContainerPort int
+	Protocol      string
+	ServicePort   int
 }
 
 // A task as returend by the Marathon REST API.

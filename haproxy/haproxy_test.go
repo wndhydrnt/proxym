@@ -9,7 +9,7 @@ import (
 
 func TestHAProxyGeneratorTcpConfig(t *testing.T) {
 	expectedConfig := `
-listen redis :6379
+listen redis :41000
   mode tcp
   option tcpka
   option tcplog
@@ -17,17 +17,18 @@ listen redis :6379
   server node1 10.10.10.10:31001 check
   server node2 10.10.10.11:31002 check
 
-listen docker_registry :5000
+listen docker_registry :42000
   mode tcp
 
   server node1 10.10.10.10:31002 check
 `
 
 	redis := types.Service{
-		Domain:   "redis.test.local",
-		Id:       "/redis",
-		Protocol: "tcp",
-		Port:     6379,
+		Domain:      "redis.test.local",
+		Id:          "/redis",
+		Port:        6379,
+		Protocol:    "tcp",
+		ServicePort: 41000,
 		Hosts: []types.Host{
 			types.Host{Ip: "10.10.10.10", Port: 31001},
 			types.Host{Ip: "10.10.10.11", Port: 31002},
@@ -35,9 +36,10 @@ listen docker_registry :5000
 	}
 
 	registry := types.Service{
-		Id:       "/docker/registry",
-		Protocol: "tcp",
-		Port:     5000,
+		Id:          "/docker/registry",
+		Port:        5000,
+		Protocol:    "tcp",
+		ServicePort: 42000,
 		Hosts: []types.Host{
 			types.Host{Ip: "10.10.10.10", Port: 31002},
 		},
@@ -86,10 +88,11 @@ backend two_webapp_cluster
 `
 
 	webappOne := types.Service{
-		Domain:   "one.app.local",
-		Id:       "/one/webapp",
-		Protocol: "tcp",
-		Port:     80,
+		Domain:      "one.app.local",
+		Id:          "/one/webapp",
+		Port:        80,
+		Protocol:    "tcp",
+		ServicePort: 43001,
 		Hosts: []types.Host{
 			types.Host{Ip: "10.10.10.12", Port: 31005},
 			types.Host{Ip: "10.10.10.11", Port: 31002},
@@ -97,10 +100,11 @@ backend two_webapp_cluster
 	}
 
 	webappTwo := types.Service{
-		Domain:   "two.app.local",
-		Id:       "/two/webapp",
-		Protocol: "tcp",
-		Port:     80,
+		Domain:      "two.app.local",
+		Id:          "/two/webapp",
+		Port:        80,
+		Protocol:    "tcp",
+		ServicePort: 43002,
 		Hosts: []types.Host{
 			types.Host{Ip: "10.10.10.10", Port: 31002},
 		},

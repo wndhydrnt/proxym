@@ -80,7 +80,9 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []types.Service
 				continue
 			}
 
-			service, index := appInServices(task.AppId, task.ServicePorts[i], services)
+			containerPort := app.Container.Docker.PortMappings[i].ContainerPort
+
+			service, index := appInServices(task.AppId, containerPort, services)
 
 			host := types.Host{Ip: task.Host, Port: port}
 
@@ -89,8 +91,9 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []types.Service
 			if index == -1 {
 				service.Id = task.AppId
 				service.Domain = g.domainStrategy(task.AppId)
-				service.Port = task.ServicePorts[i]
+				service.Port = containerPort
 				service.Protocol = app.Container.Docker.PortMappings[i].Protocol
+				service.ServicePort = task.ServicePorts[i]
 				services = append(services, service)
 			} else {
 				services[index] = service

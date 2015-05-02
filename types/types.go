@@ -23,9 +23,17 @@ type Host struct {
 }
 
 type Service struct {
-	Domain   string
-	Hosts    []Host
-	Id       string
-	Port     int
-	Protocol string
+	Domain      string
+	Hosts       []Host
+	Id          string
+	Port        int
+	Protocol    string
+	ServicePort int
+}
+
+func (s *Service) ListenPort() int {
+	if s.ServicePort == 0 {
+		return s.Port
+	}
+	return s.ServicePort
 }
