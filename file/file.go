@@ -43,6 +43,8 @@ func (sg *ServiceGenerator) Generate() ([]types.Service, error) {
 			return services, err
 		}
 
+		service.Source = "File"
+
 		services = append(services, service)
 	}
 

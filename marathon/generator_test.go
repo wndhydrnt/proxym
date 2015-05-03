@@ -96,6 +96,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[0].Port, 6379)
 	require.Equal(t, services[0].Protocol, "tcp")
 	require.Equal(t, services[0].ServicePort, 41000)
+	require.Equal(t, services[0].Source, "Marathon")
 	require.Equal(t, services[0].Hosts[0].Ip, "10.10.10.10")
 	require.Equal(t, services[0].Hosts[0].Port, 31001)
 	require.Equal(t, services[0].Hosts[1].Ip, "10.10.10.10")
@@ -106,6 +107,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[1].Port, 5000)
 	require.Equal(t, services[1].Protocol, "tcp")
 	require.Equal(t, services[1].ServicePort, 42000)
+	require.Equal(t, services[1].Source, "Marathon")
 	require.Equal(t, services[1].Hosts[0].Ip, "10.10.10.10")
 	require.Equal(t, services[1].Hosts[0].Port, 31002)
 
@@ -114,6 +116,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[2].Port, 80)
 	require.Equal(t, services[2].Protocol, "tcp")
 	require.Equal(t, services[2].ServicePort, 43000)
+	require.Equal(t, services[2].Source, "Marathon")
 	require.Equal(t, services[2].Hosts[0].Ip, "10.10.10.11")
 	require.Equal(t, services[2].Hosts[0].Port, 31001)
 
@@ -122,6 +125,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[3].Port, 2003)
 	require.Equal(t, services[3].Protocol, "tcp")
 	require.Equal(t, services[3].ServicePort, 43001)
+	require.Equal(t, services[3].Source, "Marathon")
 	require.Equal(t, services[3].Hosts[0].Ip, "10.10.10.11")
 	require.Equal(t, services[3].Hosts[0].Port, 31002)
 
@@ -130,6 +134,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[4].Port, 8125)
 	require.Equal(t, services[4].Protocol, "udp")
 	require.Equal(t, services[4].ServicePort, 43002)
+	require.Equal(t, services[4].Source, "Marathon")
 	require.Equal(t, services[4].Hosts[0].Ip, "10.10.10.11")
 	require.Equal(t, services[4].Hosts[0].Port, 31003)
 }
@@ -189,22 +194,4 @@ func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
 	services, _ := generator.Generate()
 
 	require.Empty(t, services)
-}
-
-func TestIdToDomainReverse(t *testing.T) {
-	domain := IdToDomainReverse("/redis")
-
-	require.Equal(t, "redis", domain)
-
-	domain = IdToDomainReverse("/com/example/redis")
-
-	require.Equal(t, "redis.example.com", domain)
-}
-
-func TestLastPartOfIdAndSuffix(t *testing.T) {
-	g := LastPartOfIdAndSuffix{suffix: "example.com"}
-
-	domain := g.ToDomain("/group/service")
-
-	require.Equal(t, "service.example.com", domain)
 }

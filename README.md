@@ -29,7 +29,7 @@ It takes a modular approach by dividing responsibility into three parts:
 ![proxym Design](docs/design.png)
 
 1. The `Marathon Notifier` has registered a callback via the [Marathon Event Bus](https://mesosphere.github.io/marathon/docs/event-bus.html)
-   and receives an event in case an application is deployed or scaled. It sends an event to the `Manager`.
+   and receives an event in case an application is deployed or scaled. It notifies the `Manager` of that change.
 2. The `Manager` asks all `Service Generators` for their available [Service](http://godoc.org/github.com/wndhydrnt/proxym/types#Service)s.
    In this case only the `Marathon Service Generator` is registered.
 3. The `Marathon Service Generator` queries `/v2/apps` and `/v2/tasks`, generates a list of `Service`s and returns it back to the `Manager`.

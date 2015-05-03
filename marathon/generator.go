@@ -12,9 +12,8 @@ import (
 
 // Generator talks to Marathon and creates a list of services as a result.
 type Generator struct {
-	config         *Config
-	domainStrategy func(string) string
-	httpClient     *http.Client
+	config     *Config
+	httpClient *http.Client
 }
 
 // Queries a Marathon master to receive running applications and tasks and generates a list of services.
@@ -90,10 +89,11 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []types.Service
 
 			if index == -1 {
 				service.Id = task.AppId
-				service.Domain = g.domainStrategy(task.AppId)
+				service.Domain = ""
 				service.Port = containerPort
 				service.Protocol = app.Container.Docker.PortMappings[i].Protocol
 				service.ServicePort = task.ServicePorts[i]
+				service.Source = "Marathon"
 				services = append(services, service)
 			} else {
 				services[index] = service
@@ -122,30 +122,4 @@ func appOfTask(apps Apps, task Task) (App, error) {
 	}
 
 	return App{}, errors.New(fmt.Sprintf("No app for task '%s' found", task.AppId))
-}
-
-// Helper function that takes the Id of a task and creates a domain out of it by reversing its elements.
-// '/com/example/webapp' will be turned into 'webapp.example.com'.
-func IdToDomainReverse(id string) string {
-	var domainParts []string
-
-	// First item is always empty due to leading '/'. Remove it here.
-	parts := strings.Split(id[1:], "/")
-
-	for _, part := range parts {
-		domainParts = append([]string{part}, domainParts...)
-	}
-
-	return strings.Join(domainParts, ".")
-}
-
-type LastPartOfIdAndSuffix struct {
-	suffix string
-}
-
-func (l *LastPartOfIdAndSuffix) ToDomain(id string) string {
-	// First item is always empty due to leading '/'. Remove it here.
-	parts := strings.Split(id[1:], "/")
-
-	return parts[len(parts)-1] + "." + l.suffix
 }

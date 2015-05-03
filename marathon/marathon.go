@@ -80,30 +80,13 @@ func NewNotifier(c *Config) *Watcher {
 }
 
 // Creates and returns a new ServiceGenerator.
-func NewServiceGenerator(c *Config, domainStrategy func(string) string) *Generator {
+func NewServiceGenerator(c *Config) *Generator {
 	httpClient := &http.Client{}
 
 	return &Generator{
-		config:         c,
-		domainStrategy: domainStrategy,
-		httpClient:     httpClient,
+		config:     c,
+		httpClient: httpClient,
 	}
-}
-
-func domainStrategy() func(string) string {
-	s := os.Getenv("PROXYM_MARATHON_DOMAIN_STRATEGY")
-
-	if s == "LastPartOfIdAndSuffix" {
-		l := LastPartOfIdAndSuffix{suffix: os.Getenv("PROXYM_MARATHON_DOMAIN_SUFFIX")}
-
-		return l.ToDomain
-	}
-
-	if s == "IdToDomainReverse" {
-		return IdToDomainReverse
-	}
-
-	return IdToDomainReverse
 }
 
 func init() {
@@ -115,8 +98,6 @@ func init() {
 		n := NewNotifier(&c)
 
 		manager.AddNotifier(n)
-
-		ds := domainStrategy()
 
 		sg := NewServiceGenerator(&c, ds)
 

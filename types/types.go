@@ -33,6 +33,7 @@ type Service struct {
 	Port        int
 	Protocol    string
 	ServicePort int
+	Source      string
 }
 
 // Figure out the port on which a service is listening.

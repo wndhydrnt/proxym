@@ -44,10 +44,11 @@ listen docker_registry :42000
 		},
 	}
 
-	optionsPath, _ := filepath.Abs("../tests/fixtures/haproxy")
+	settingsPath, _ := filepath.Abs("../tests/fixtures/haproxy")
 
 	config := &Config{
-		SettingsPath: optionsPath,
+		SettingsPath:     settingsPath,
+		TemplateFilePath: settingsPath + "/global.cfg",
 	}
 
 	haproxy := HAProxyGenerator{
@@ -103,10 +104,11 @@ backend two_webapp_cluster
 		},
 	}
 
-	optionsPath, _ := filepath.Abs("../tests/fixtures/haproxy")
+	settingsPath, _ := filepath.Abs("../tests/fixtures/haproxy")
 
 	config := &Config{
-		SettingsPath: optionsPath,
+		SettingsPath:     settingsPath,
+		TemplateFilePath: settingsPath + "/global.cfg",
 	}
 
 	haproxy := HAProxyGenerator{
@@ -128,7 +130,8 @@ frontend http-in
 
 	haproxy := HAProxyGenerator{
 		c: &Config{
-			SettingsPath: settingsPath,
+			SettingsPath:     settingsPath,
+			TemplateFilePath: settingsPath + "/global.cfg",
 		},
 	}
 

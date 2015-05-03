@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/spf13/hugo/tpl"
 	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/manager"
 	"github.com/wndhydrnt/proxym/types"
@@ -13,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"text/template"
 )
 
 type Config struct {
@@ -106,12 +106,12 @@ func (h *HAProxyGenerator) config(services []types.Service) string {
 	var srvcs []ServiceAndSettings
 
 	for _, service := range services {
-		serviceConfig, _ := h.readServiceSettings(service.Domain, service.Port)
-
 		if service.Protocol != "tcp" {
 			// HAProxy supports TCP only. Ignore any other protocol.
 			continue
 		}
+
+		serviceConfig, _ := h.readServiceSettings(service.NormalizeId(), service.Port)
 
 		srvcs = append(srvcs, ServiceAndSettings{serviceConfig, service})
 	}
@@ -122,15 +122,15 @@ func (h *HAProxyGenerator) config(services []types.Service) string {
 		return ""
 	}
 
-	tlt, err := template.New("haproxy").Parse(globalConfig)
+	var out bytes.Buffer
+
+	tpl, err := tpl.New().New("haproxy").Parse(globalConfig)
 	if err != nil {
 		log.ErrorLog.Error("%s", err)
 		return ""
 	}
 
-	var out bytes.Buffer
-
-	err = tlt.Execute(&out, srvcs)
+	err = tpl.Execute(&out, srvcs)
 	if err != nil {
 		log.ErrorLog.Error("%s", err)
 		return ""
@@ -139,8 +139,8 @@ func (h *HAProxyGenerator) config(services []types.Service) string {
 	return removeEmptyLines(out.String()) + "\n"
 }
 
-func (h *HAProxyGenerator) readServiceSettings(domain string, port int) (*ServiceSettings, error) {
-	path := fmt.Sprintf("%s/%s_%d.yml", h.c.SettingsPath, domain, port)
+func (h *HAProxyGenerator) readServiceSettings(id string, port int) (*ServiceSettings, error) {
+	path := fmt.Sprintf("%s/%s_%d.yml", h.c.SettingsPath, id, port)
 
 	_, err := os.Stat(path)
 	if err != nil {

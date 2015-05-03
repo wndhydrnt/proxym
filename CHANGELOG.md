@@ -5,6 +5,8 @@
 Features:
 
 * HAProxy Config Generator: Generate the configuration file of HAProxy from a template.
+  It uses the hugo templating engine.
+* `types.Service` now exposes a `Source` field which can be checked in templates.
 
 Improvements:
 
