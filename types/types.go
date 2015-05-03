@@ -1,5 +1,9 @@
 package types
 
+import (
+	"strings"
+)
+
 // A ConfigGenerator creates a configuration from several services.
 type ConfigGenerator interface {
 	Generate(services []Service)
@@ -31,9 +35,26 @@ type Service struct {
 	ServicePort int
 }
 
+// Figure out the port on which a service is listening.
 func (s *Service) ListenPort() int {
 	if s.ServicePort == 0 {
 		return s.Port
 	}
 	return s.ServicePort
+}
+
+// Replace "/" in the ID if a Service with "_".
+func (s *Service) NormalizeId() string {
+	if strings.Contains(s.Id, "/") {
+		parts := strings.Split(s.Id, "/")
+
+		// Remove empty part in case of leading '/' in id
+		if parts[0] == "" {
+			parts = parts[1:]
+		}
+
+		return strings.Join(parts, "_")
+	}
+
+	return s.Id
 }

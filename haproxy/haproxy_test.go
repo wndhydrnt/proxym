@@ -8,19 +8,18 @@ import (
 )
 
 func TestHAProxyGeneratorTcpConfig(t *testing.T) {
-	expectedConfig := `
+	expectedConfig := `###GLOBAL CONFIG###
+frontend http-in
+  bind *:80
 listen redis :41000
   mode tcp
   option tcpka
   option tcplog
-
-  server node1 10.10.10.10:31001 check
-  server node2 10.10.10.11:31002 check
-
+  server redis-10.10.10.10-31001 10.10.10.10:31001 check
+  server redis-10.10.10.11-31002 10.10.10.11:31002 check
 listen docker_registry :42000
   mode tcp
-
-  server node1 10.10.10.10:31002 check
+  server docker_registry-10.10.10.10-31002 10.10.10.10:31002 check
 `
 
 	redis := types.Service{
@@ -48,43 +47,37 @@ listen docker_registry :42000
 	optionsPath, _ := filepath.Abs("../tests/fixtures/haproxy")
 
 	config := &Config{
-		OptionsPath: optionsPath,
+		SettingsPath: optionsPath,
 	}
 
 	haproxy := HAProxyGenerator{
 		c: config,
 	}
 
-	haproxyConfig := haproxy.tcpConfig([]types.Service{redis, registry})
+	haproxyConfig := haproxy.config([]types.Service{redis, registry})
 
 	require.Equal(t, expectedConfig, haproxyConfig)
 }
 
 func TestHAProxyGeneratorHttpConfig(t *testing.T) {
-	expectedConfig := `
+	expectedConfig := `###GLOBAL CONFIG###
 frontend http-in
   bind *:80
-
   acl host_one_webapp hdr(host) -i one.app.local
   acl host_one_webapp hdr(host) -i one-alt.app.local
   acl host_one_webapp hdr(host) -i one-another-alt.app.local
   acl host_two_webapp hdr(host) -i two.app.local
-
   use_backend one_webapp_cluster if host_one_webapp
   use_backend two_webapp_cluster if host_two_webapp
-
 backend one_webapp_cluster
   balance leastconn
   option httpclose
   option forwardfor
-
-  server node1 10.10.10.12:31005 check
-  server node2 10.10.10.11:31002 check
-
+  server one_webapp-10.10.10.12-31005 10.10.10.12:31005 check
+  server one_webapp-10.10.10.11-31002 10.10.10.11:31002 check
 backend two_webapp_cluster
   balance leastconn
-
-  server node1 10.10.10.10:31002 check
+  server two_webapp-10.10.10.10-31002 10.10.10.10:31002 check
 `
 
 	webappOne := types.Service{
@@ -113,24 +106,33 @@ backend two_webapp_cluster
 	optionsPath, _ := filepath.Abs("../tests/fixtures/haproxy")
 
 	config := &Config{
-		OptionsPath: optionsPath,
+		SettingsPath: optionsPath,
 	}
 
 	haproxy := HAProxyGenerator{
 		c: config,
 	}
 
-	haproxConfig := haproxy.httpConfig([]types.Service{webappOne, webappTwo})
+	haproxConfig := haproxy.config([]types.Service{webappOne, webappTwo})
 
 	require.Equal(t, expectedConfig, haproxConfig)
 }
 
 func TestHAProxyGeneratorHttpConfigEmptyServices(t *testing.T) {
+	expectedConfig := `###GLOBAL CONFIG###
+frontend http-in
+  bind *:80
+`
+
+	settingsPath, _ := filepath.Abs("../tests/fixtures/haproxy")
+
 	haproxy := HAProxyGenerator{
-		c: &Config{},
+		c: &Config{
+			SettingsPath: settingsPath,
+		},
 	}
 
-	haproxConfig := haproxy.httpConfig([]types.Service{})
+	haproxConfig := haproxy.config([]types.Service{})
 
-	require.Equal(t, "", haproxConfig)
+	require.Equal(t, expectedConfig, haproxConfig)
 }

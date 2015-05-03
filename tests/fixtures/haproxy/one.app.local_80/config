@@ -1,3 +1,0 @@
-balance leastconn
-option httpclose
-option forwardfor

@@ -2,6 +2,19 @@
 
 ## 1.3.0 (unreleased)
 
+Features:
+
+* HAProxy Config Generator: Generate the configuration file of HAProxy from a template.
+
+Improvements:
+
+* HAProxy Config Generator: Do not detect HTTP via the `ServicePort` of a service.
+  Configure it in a YAML configuration file instead.
+
+Bugfixes:
+
+* Marathon Service Generator: Fix error when retrieving `/v2/tasks` from Marathon 0.8.1.
+
 ## 1.2.2
 
 Bugfixes:

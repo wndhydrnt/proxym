@@ -1,15 +1,3 @@
-// This module consists of a Notifier and a ServiceGenerator to integrate services running on Mesos and scheduled by
-// Marathon.
-//
-// It expects the following environment varibales to be set:
-//
-// MARATHON_CALLBACK_HOST - The IP the Marathon event receiver uses to bind to
-//
-// MARATHON_CALLBACK_PORT - The port the Marathon event receiver uses to bind to
-//
-// MARATHON_CALLBACK_ENDPOINT - The path to the resource which gets registered with Marathon
-//
-// MARATHON_SERVERS - A list of Marathon servers separated by commas. Format '<IP>:<PORT>,<IP>:<PORT>,...'
 package marathon
 
 import (
