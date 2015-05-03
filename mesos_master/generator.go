@@ -29,6 +29,7 @@ func (m *MesosMasterServiceGenerator) Generate() ([]types.Service, error) {
 		Id:       "/mesos-master",
 		Port:     80,
 		Protocol: "tcp",
+		Source:   "Mesos Master",
 	}
 
 	return []types.Service{service}, nil
