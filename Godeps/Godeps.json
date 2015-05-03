@@ -1,6 +1,9 @@
 {
 	"ImportPath": "github.com/wndhydrnt/proxym",
 	"GoVersion": "go1.4.1",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -109,6 +112,14 @@
 		{
 			"ImportPath": "github.com/spf13/viper",
 			"Rev": "2e47d9ed4a4ee0cad6e154285e1e0509749b4b3c"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Rev": "33a31e5dbed8302d5ab7e6d12b416e95c2c4ebc0"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/require",
+			"Rev": "33a31e5dbed8302d5ab7e6d12b416e95c2c4ebc0"
 		},
 		{
 			"ImportPath": "github.com/xordataexchange/crypt/backend",
