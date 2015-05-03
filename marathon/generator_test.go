@@ -80,9 +80,8 @@ func TestServicesFromMarathon(t *testing.T) {
 	c := &http.Client{}
 
 	generator := Generator{
-		httpClient:     c,
-		domainStrategy: func(id string) string { return id },
-		config:         &Config{Servers: ts.URL},
+		httpClient: c,
+		config:     &Config{Servers: ts.URL},
 	}
 
 	services, _ := generator.Generate()
@@ -92,7 +91,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Len(t, services, 5)
 
 	require.Equal(t, services[0].Id, "/redis")
-	require.Equal(t, services[0].Domain, "/redis")
+	require.Equal(t, services[0].Domain, "")
 	require.Equal(t, services[0].Port, 6379)
 	require.Equal(t, services[0].Protocol, "tcp")
 	require.Equal(t, services[0].ServicePort, 41000)
@@ -103,7 +102,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[0].Hosts[1].Port, 31003)
 
 	require.Equal(t, services[1].Id, "/registry")
-	require.Equal(t, services[1].Domain, "/registry")
+	require.Equal(t, services[1].Domain, "")
 	require.Equal(t, services[1].Port, 5000)
 	require.Equal(t, services[1].Protocol, "tcp")
 	require.Equal(t, services[1].ServicePort, 42000)
@@ -112,7 +111,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[1].Hosts[0].Port, 31002)
 
 	require.Equal(t, services[2].Id, "/graphite-statsd")
-	require.Equal(t, services[2].Domain, "/graphite-statsd")
+	require.Equal(t, services[2].Domain, "")
 	require.Equal(t, services[2].Port, 80)
 	require.Equal(t, services[2].Protocol, "tcp")
 	require.Equal(t, services[2].ServicePort, 43000)
@@ -121,7 +120,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[2].Hosts[0].Port, 31001)
 
 	require.Equal(t, services[3].Id, "/graphite-statsd")
-	require.Equal(t, services[3].Domain, "/graphite-statsd")
+	require.Equal(t, services[3].Domain, "")
 	require.Equal(t, services[3].Port, 2003)
 	require.Equal(t, services[3].Protocol, "tcp")
 	require.Equal(t, services[3].ServicePort, 43001)
@@ -130,7 +129,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[3].Hosts[0].Port, 31002)
 
 	require.Equal(t, services[4].Id, "/graphite-statsd")
-	require.Equal(t, services[4].Domain, "/graphite-statsd")
+	require.Equal(t, services[4].Domain, "")
 	require.Equal(t, services[4].Port, 8125)
 	require.Equal(t, services[4].Protocol, "udp")
 	require.Equal(t, services[4].ServicePort, 43002)
@@ -186,9 +185,8 @@ func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
 	c := &http.Client{}
 
 	generator := Generator{
-		httpClient:     c,
-		domainStrategy: func(id string) string { return id },
-		config:         &Config{Servers: ts.URL},
+		httpClient: c,
+		config:     &Config{Servers: ts.URL},
 	}
 
 	services, _ := generator.Generate()

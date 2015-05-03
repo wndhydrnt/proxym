@@ -4,7 +4,6 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/wndhydrnt/proxym/manager"
 	"net/http"
-	"os"
 )
 
 const (
@@ -99,7 +98,7 @@ func init() {
 
 		manager.AddNotifier(n)
 
-		sg := NewServiceGenerator(&c, ds)
+		sg := NewServiceGenerator(&c)
 
 		manager.AddServiceGenerator(sg)
 	}
