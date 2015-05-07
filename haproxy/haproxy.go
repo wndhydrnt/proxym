@@ -17,12 +17,12 @@ import (
 )
 
 type Config struct {
-	BinaryPath       string `envconfig:"binary_path"`
-	ConfigFilePath   string `envconfig:"config_file_path"`
-	Enabled          bool
-	PidPath          string `envconfig:"pid_path"`
-	SettingsPath     string `envconfig:"settings_path"`
-	TemplateFilePath string `envconfig:"template_file_path"`
+	BinaryPath     string `envconfig:"binary_path"`
+	ConfigFilePath string `envconfig:"config_file_path"`
+	Enabled        bool
+	PidPath        string `envconfig:"pid_path"`
+	SettingsPath   string `envconfig:"settings_path"`
+	TemplatePath   string `envconfig:"template_path"`
 }
 
 type ServiceAndSettings struct {
@@ -116,7 +116,7 @@ func (h *HAProxyGenerator) config(services []types.Service) string {
 		srvcs = append(srvcs, ServiceAndSettings{serviceConfig, service})
 	}
 
-	globalConfig, err := readExistingFile(h.c.TemplateFilePath)
+	globalConfig, err := readExistingFile(h.c.TemplatePath)
 	if err != nil {
 		log.ErrorLog.Error("Unable to read global config. Stopping HAProxy config generator: %s", err)
 		return ""

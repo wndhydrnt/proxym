@@ -75,11 +75,76 @@ Environment variables:
 
 Name | Description | Required | Default
 ---- | ----------- | -------- | -------
-PROXYM_HAPROXY_BINARY_PATH | The absolute path to the binary of HAProxy. | yes | None
-PROXYM_HAPROXY_CONFIG_FILE_PATH | An absolute path where the generated config file will be stored. This file is passed to the binary of HAProxy. | yes | None
+PROXYM_HAPROXY_BINARY_PATH | The absolute path to the binary of HAProxy, e.g. `/usr/sbin/haproxy`. | yes | None
+PROXYM_HAPROXY_CONFIG_FILE_PATH | An absolute path where the generated config file will be stored. This file is passed to the binary of HAProxy. E.g. `/etc/haproxy/haproxy.cfg` | yes | None
 PROXYM_HAPROXY_ENABLED | Enable this module. | no | 0
-PROXYM_HAPROXY_SETTINGS_PATH | Path to a directory where additional configuration files of services are stored. | yes | None
-PROXYM_HAPROXY_PID_PATH | The absolute path to the PIDFILE of `haproxy`. | yes | None
+PROXYM_HAPROXY_PID_PATH | The absolute path to the PIDFILE of `haproxy`, e.g. `/var/run/haproxy`. | yes | None
+PROXYM_HAPROXY_SETTINGS_PATH | Path to a directory where additional configuration files of services are stored, e.g. `/etc/proxym/haproxy`. | yes | None
+PROXYM_HAPROXY_TEMPLATE_PATH | Path to the template used to generate a HAProxy configuration file. | yes | None
+
+#### Configuration File Template
+
+The data passed to the template is a list of `haproxy.ServiceAndSettings` struct.
+[Functions](http://godoc.org/github.com/spf13/hugo/tpl) of the [Hugo templating engine](http://gohugo.io/) are available in the template.
+Take a look at this [example configuration](./docs/haproxy-sample.cfg).
+
+#### Additional Configuration of a Service
+
+Each Service can have additional configuration where domains, HAProxy configuration instructions and the protocol to use are defined.
+These are then available in the template.
+
+A configuration file is a YAML file and is read for each port that is defined by an application.
+
+This Marathon application
+
+```json
+{
+  "id": "/production/team/app",
+  ...
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+        "image": "group/image",
+        "network": "BRIDGE",
+        "portMappings": [
+            {
+                "containerPort": 8080,
+                "hostPort": 0,
+                "servicePort": 9000,
+                "protocol": "tcp"
+            },
+            {
+                "containerPort": 161,
+                "hostPort": 0,
+                "protocol": "tcp"
+            }
+        ]
+    }
+  },
+  ...
+}
+```
+
+can have two additional configuration files.
+The `id` of the Marathon application is normalised and the port is appended:
+`<PROXYM_HAPROXY_SETTINGS_PATH>/production_team_app_8080.yml`
+and `<PROXYM_HAPROXY_SETTINGS_PATH>/production_team_app_161.yml`.
+
+A configuration file looks like this:
+
+```yaml
+domains:
+  - alt-webapp.example.com
+config: |
+  balance leastconn
+  option httpclose
+  option forwardfor
+protocol: http
+```
+
+*domains:* A list of domains
+*config:* HAProxy configuration instructions
+*protocol*: Protocol to proxy. Useful to distinguish between HTTP and TCP load balancing.
 
 ### Marathon
 
