@@ -3,16 +3,20 @@ package marathon
 import (
 	"bytes"
 	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/require"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 )
 
 func TestShouldRegisterWithMarathon(t *testing.T) {
 	callReceived := false
 	refresh := make(chan string, 1)
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callReceived = true
@@ -27,15 +31,12 @@ func TestShouldRegisterWithMarathon(t *testing.T) {
 
 	watcher := Watcher{
 		config: &Config{
-			HttpHost: "localhost",
-			HttpPort: "56398",
-			Endpoint: "/callback",
-			Servers:  ts.URL,
+			Servers: ts.URL,
 		},
 		httpClient: c,
 	}
 
-	watcher.Start(refresh)
+	watcher.Start(refresh, make(chan int), wg)
 
 	require.True(t, callReceived)
 }
@@ -57,7 +58,7 @@ func TestReactsToStatusUpdateEvent(t *testing.T) {
 		refreshChannel: refresh,
 	}
 
-	watcher.callbackHandler(w, req)
+	watcher.callbackHandler(w, req, httprouter.Params{})
 
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, "", w.Body.String())
@@ -89,7 +90,7 @@ func TestIgnoresDifferentEvent(t *testing.T) {
 		refreshChannel: refresh,
 	}
 
-	watcher.callbackHandler(w, req)
+	watcher.callbackHandler(w, req, httprouter.Params{})
 
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, "", w.Body.String())

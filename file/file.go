@@ -19,8 +19,8 @@ type ServiceGenerator struct {
 	c *Config
 }
 
-func (sg *ServiceGenerator) Generate() ([]types.Service, error) {
-	var services []types.Service
+func (sg *ServiceGenerator) Generate() ([]*types.Service, error) {
+	var services []*types.Service
 
 	files, err := ioutil.ReadDir(sg.c.ConfigsPath)
 	if err != nil {
@@ -58,8 +58,8 @@ func NewServiceGenerator(c *Config) *ServiceGenerator {
 	}
 }
 
-func readServiceFromConfig(path string) (types.Service, error) {
-	var service types.Service
+func readServiceFromConfig(path string) (*types.Service, error) {
+	service := &types.Service{}
 
 	f, err := os.Open(path)
 	if err != nil {
@@ -73,7 +73,7 @@ func readServiceFromConfig(path string) (types.Service, error) {
 		return service, err
 	}
 
-	err = json.Unmarshal(data, &service)
+	err = json.Unmarshal(data, service)
 	if err != nil {
 		return service, err
 	}

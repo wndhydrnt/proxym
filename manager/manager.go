@@ -3,16 +3,36 @@
 package manager
 
 import (
+	"github.com/julienschmidt/httprouter"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/types"
+	"net/http"
+	"sync"
 )
+
+type Config struct {
+	ListenAddress string `envconfig:"listen_address"`
+}
 
 // Manager orchestrates Notifiers, ServiceGenerators and ConfigGenerators.
 type Manager struct {
+	annotators        []types.Annotator
+	Config            *Config
 	configGenerators  []types.ConfigGenerator
+	httpRouter        *httprouter.Router
 	notifiers         []types.Notifier
+	quit              chan int
 	refresh           chan string
 	serviceGenerators []types.ServiceGenerator
+	waitGroup         *sync.WaitGroup
+}
+
+// Add an Annotator
+func (m *Manager) AddAnnotator(a types.Annotator) *Manager {
+	m.annotators = append(m.annotators, a)
+
+	return m
 }
 
 // Add a ConfigGenerator.
@@ -36,22 +56,45 @@ func (m *Manager) AddServiceGenerator(sg types.ServiceGenerator) *Manager {
 	return m
 }
 
+// Register an endpoint with the HTTP server
+func (m *Manager) RegisterHttpEndpoint(method string, prefix string, pattern string, handle httprouter.Handle) *Manager {
+	log.AppLog.Debug("Registering HTTP endpoint on '%s%s' with method '%s'", prefix, pattern, method)
+	path := prefix + pattern
+
+	m.httpRouter.Handle(method, path, handle)
+
+	return m
+}
+
 // Starts every notifier and listens for messages that trigger a refresh.
 // When a refresh is triggered it calls all ServiceGenerators and then all ConfigGenerators.
 func (m *Manager) Run() {
+	m.waitGroup = &sync.WaitGroup{}
+	m.waitGroup.Add(len(m.notifiers))
+
 	for _, notifier := range m.notifiers {
-		go notifier.Start(m.refresh)
+		go notifier.Start(m.refresh, m.quit, m.waitGroup)
 	}
+
+	log.AppLog.Debug(m.Config.ListenAddress)
+	go http.ListenAndServe(m.Config.ListenAddress, m.httpRouter)
+
 	// Refresh right on startup
 	m.process()
 
 	for _ = range m.refresh {
+		log.AppLog.Debug("Refresh received")
 		m.process()
 	}
 }
 
+func (m *Manager) Quit() {
+	close(m.quit)
+	m.waitGroup.Wait()
+}
+
 func (m *Manager) process() {
-	var services []types.Service
+	var services []*types.Service
 	for _, sg := range m.serviceGenerators {
 		svrs, err := sg.Generate()
 		if err != nil {
@@ -62,6 +105,10 @@ func (m *Manager) process() {
 		services = append(services, svrs...)
 	}
 
+	for _, a := range m.annotators {
+		a.Annotate(services)
+	}
+
 	for _, cg := range m.configGenerators {
 		cg.Generate(services)
 	}
@@ -70,11 +117,22 @@ func (m *Manager) process() {
 // Creates and returns a new Manager.
 func New() Manager {
 	refreshChannel := make(chan string, 10)
+	quitChannel := make(chan int)
 
-	return Manager{refresh: refreshChannel}
+	var c Config
+	envconfig.Process("proxym", &c)
+
+	log.AppLog.Debug(c.ListenAddress)
+
+	return Manager{Config: &c, httpRouter: httprouter.New(), refresh: refreshChannel, quit: quitChannel}
 }
 
 var DefaultManager Manager = New()
+
+// Add an Annotator
+func AddAnnotator(a types.Annotator) {
+	DefaultManager.AddAnnotator(a)
+}
 
 // Add a ConfigGenerator.
 func AddConfigGenerator(cg types.ConfigGenerator) {
@@ -91,7 +149,15 @@ func AddServiceGenerator(sg types.ServiceGenerator) {
 	DefaultManager.AddServiceGenerator(sg)
 }
 
+func RegisterHttpEndpoint(method string, prefix string, pattern string, handle httprouter.Handle) {
+	DefaultManager.RegisterHttpEndpoint(method, prefix, pattern, handle)
+}
+
 // Start the default manager.
 func Run() {
 	DefaultManager.Run()
+}
+
+func Quit() {
+	DefaultManager.Quit()
 }

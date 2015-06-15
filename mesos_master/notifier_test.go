@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 )
@@ -13,6 +14,8 @@ import (
 func TestShouldTriggerRefreshWhenMasterChanges(t *testing.T) {
 	refresh := make(chan string, 1)
 	reqCount := 0
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" && r.RequestURI == "/master/state.json" {
@@ -46,7 +49,7 @@ func TestShouldTriggerRefreshWhenMasterChanges(t *testing.T) {
 		hc: &http.Client{},
 	}
 
-	go n.Start(refresh)
+	go n.Start(refresh, make(chan int), wg)
 
 	time.Sleep(3 * time.Second)
 

@@ -1,7 +1,7 @@
 {
-  "domain": "redis.example.com",
+  "domains": ["redis.example.com"],
   "id": "/redis",
-  "protocol": "tcp",
+  "transportProtocol": "tcp",
   "port": 6379,
   "hosts": [
     {"ip": "10.10.10.10", "port": 31001},

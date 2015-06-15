@@ -4,47 +4,46 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"github.com/wndhydrnt/proxym/log"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 // Receives messages via the HTTP event bus of Marathon.
 type Watcher struct {
-	config         *Config
-	httpClient     *http.Client
-	refreshChannel chan string
+	config            *Config
+	httpClient        *http.Client
+	httpListenAddress string
+	refreshChannel    chan string
 }
 
 // Start a HTTP server and register its endpoint with Marathon in order to receive event notifications.
-func (wt *Watcher) Start(refresh chan string) {
+func (wt *Watcher) Start(refresh chan string, quit chan int, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	wt.refreshChannel = refresh
-
-	go func() {
-		http.HandleFunc(wt.config.Endpoint, wt.callbackHandler)
-
-		http.ListenAndServe(fmt.Sprintf("%s:%s", wt.config.HttpHost, wt.config.HttpPort), nil)
-	}()
 
 	server := strings.Split(wt.config.Servers, ",")[0]
 
-	callbackUrl := fmt.Sprintf("http://%s:%s%s", wt.config.HttpHost, wt.config.HttpPort, wt.config.Endpoint)
+	callbackUrl := fmt.Sprintf("http://%s%s", wt.httpListenAddress, "/marathon/callback")
 
 	url := fmt.Sprintf("%s%s?callbackUrl=%s", server, eventubscriptionsEndpoint, callbackUrl)
 
 	resp, err := wt.httpClient.Post(url, contentType, bytes.NewBufferString(""))
 	if err != nil {
-		log.ErrorLog.Error("Error registering callback with Marathon '%s' - disabling module 'Marathon'", err)
+		log.ErrorLog.Error("Error registering callback with Marathon '%s'", err)
 		return
 	}
 
 	if resp.StatusCode != 200 {
-		log.ErrorLog.Error("Unable to register callback with Marathon server '%s' - disabling module 'Marathon'", server)
+		log.ErrorLog.Error("Unable to register callback with Marathon server '%s''", server)
 	}
 }
 
-func (wt *Watcher) callbackHandler(w http.ResponseWriter, r *http.Request) {
+func (wt *Watcher) callbackHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var event Event
 
 	body, err := ioutil.ReadAll(r.Body)
