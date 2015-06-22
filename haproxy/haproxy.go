@@ -9,7 +9,6 @@ import (
 	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/manager"
 	"github.com/wndhydrnt/proxym/types"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -21,35 +20,7 @@ type Config struct {
 	ConfigFilePath string `envconfig:"config_file_path"`
 	Enabled        bool
 	PidPath        string `envconfig:"pid_path"`
-	SettingsPath   string `envconfig:"settings_path"`
 	TemplatePath   string `envconfig:"template_path"`
-}
-
-type ServiceAndSettings struct {
-	Settings *ServiceSettings
-	Service  types.Service
-}
-
-type ServiceSettings struct {
-	Domains  []string
-	Config   string
-	Protocol string
-}
-
-func (s *ServiceSettings) ConfigItems() []string {
-	items := []string{}
-
-	lines := strings.Split(s.Config, "\n")
-	for _, line := range lines {
-		line = strings.Trim(line, " ")
-		if line == "" {
-			continue
-		}
-
-		items = append(items, line)
-	}
-
-	return items
 }
 
 type HAProxyGenerator struct {
@@ -57,7 +28,7 @@ type HAProxyGenerator struct {
 }
 
 // Creates a new HAproxy config file and reloads HAProxy
-func (h *HAProxyGenerator) Generate(services []types.Service) {
+func (h *HAProxyGenerator) Generate(services []*types.Service) {
 	currentConfig, _ := readExistingFile(h.c.ConfigFilePath)
 	newConfig := h.config(services)
 
@@ -68,11 +39,9 @@ func (h *HAProxyGenerator) Generate(services []types.Service) {
 
 	f, err := os.Create(h.c.ConfigFilePath)
 	if err != nil {
-
 		log.ErrorLog.Error("Unable to open config file for reading '%s': %s", h.c.ConfigFilePath, err)
 		return
 	}
-
 	defer f.Close()
 
 	_, err = f.WriteString(newConfig)
@@ -102,20 +71,7 @@ func (h *HAProxyGenerator) Generate(services []types.Service) {
 	}
 }
 
-func (h *HAProxyGenerator) config(services []types.Service) string {
-	var srvcs []ServiceAndSettings
-
-	for _, service := range services {
-		if service.Protocol != "tcp" {
-			// HAProxy supports TCP only. Ignore any other protocol.
-			continue
-		}
-
-		serviceConfig, _ := h.readServiceSettings(service.NormalizeId(), service.Port)
-
-		srvcs = append(srvcs, ServiceAndSettings{serviceConfig, service})
-	}
-
+func (h *HAProxyGenerator) config(services []*types.Service) string {
 	globalConfig, err := readExistingFile(h.c.TemplatePath)
 	if err != nil {
 		log.ErrorLog.Error("Unable to read global config. Stopping HAProxy config generator: %s", err)
@@ -130,43 +86,13 @@ func (h *HAProxyGenerator) config(services []types.Service) string {
 		return ""
 	}
 
-	err = tpl.Execute(&out, srvcs)
+	err = tpl.Execute(&out, services)
 	if err != nil {
 		log.ErrorLog.Error("%s", err)
 		return ""
 	}
 
 	return removeEmptyLines(out.String()) + "\n"
-}
-
-func (h *HAProxyGenerator) readServiceSettings(id string, port int) (*ServiceSettings, error) {
-	path := fmt.Sprintf("%s/%s_%d.yml", h.c.SettingsPath, id, port)
-
-	_, err := os.Stat(path)
-	if err != nil {
-		return &ServiceSettings{}, nil
-	} else {
-		f, err := os.Open(path)
-		if err != nil {
-			return &ServiceSettings{}, err
-		}
-
-		defer f.Close()
-
-		data, err := ioutil.ReadAll(f)
-		if err != nil {
-			return &ServiceSettings{}, err
-		}
-
-		serviceConfig := &ServiceSettings{}
-
-		err = yaml.Unmarshal(data, serviceConfig)
-		if err != nil {
-			return &ServiceSettings{}, err
-		}
-
-		return serviceConfig, nil
-	}
 }
 
 func readExistingFile(fp string) (string, error) {

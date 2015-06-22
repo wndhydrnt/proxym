@@ -1,2 +1,3 @@
 /proxym*
 package/deb/usr/sbin/proxym
+.vagrant/

@@ -3,6 +3,7 @@ package mesos_master
 import (
 	"github.com/wndhydrnt/proxym/log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -12,7 +13,10 @@ type MesosMasterNotifier struct {
 	hc            *http.Client
 }
 
-func (m *MesosMasterNotifier) Start(refresh chan string) {
+func (m *MesosMasterNotifier) Start(refresh chan string, quit chan int, wg *sync.WaitGroup) {
+	// No need to close anything
+	wg.Done()
+
 	c := time.Tick(time.Duration(m.config.PollInterval) * time.Second)
 
 	for _ = range c {

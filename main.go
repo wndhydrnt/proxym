@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "github.com/wndhydrnt/proxym/annotation_api"
 	_ "github.com/wndhydrnt/proxym/file"
 	_ "github.com/wndhydrnt/proxym/haproxy"
 	proxymLog "github.com/wndhydrnt/proxym/log"
@@ -22,5 +23,6 @@ func main() {
 	signal.Notify(sc, os.Interrupt, os.Kill)
 
 	<-sc
+	manager.Quit()
 	proxymLog.AppLog.Info("Shutting down...")
 }

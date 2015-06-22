@@ -1,23 +1,27 @@
 package types
 
 import (
-	"strings"
+	"sync"
 )
+
+type Annotator interface {
+	Annotate(services []*Service)
+}
 
 // A ConfigGenerator creates a configuration from several services.
 type ConfigGenerator interface {
-	Generate(services []Service)
+	Generate(services []*Service)
 }
 
 // A Notifier recognizes changes in your system. For example, it could regularly poll an API or listen on an event bus.
 // If something changes, it notifies the Manager to trigger a refresh.
 type Notifier interface {
-	Start(refresh chan string)
+	Start(refresh chan string, quit chan int, wg *sync.WaitGroup)
 }
 
 // A ServiceGenerator reads information about nodes and creates a list of services.
 type ServiceGenerator interface {
-	Generate() ([]Service, error)
+	Generate() ([]*Service, error)
 }
 
 // A host is an IP and a port where traffic should be proxied to.
@@ -27,13 +31,15 @@ type Host struct {
 }
 
 type Service struct {
-	Domain      string
-	Hosts       []Host
-	Id          string
-	Port        int
-	Protocol    string
-	ServicePort int
-	Source      string
+	ApplicationProtocol string
+	Config              string
+	Domains             []string
+	Hosts               []Host
+	Id                  string
+	Port                int
+	ServicePort         int
+	Source              string
+	TransportProtocol   string
 }
 
 // Figure out the port on which a service is listening.
@@ -42,20 +48,4 @@ func (s *Service) ListenPort() int {
 		return s.Port
 	}
 	return s.ServicePort
-}
-
-// Replace "/" in the ID if a Service with "_".
-func (s *Service) NormalizeId() string {
-	if strings.Contains(s.Id, "/") {
-		parts := strings.Split(s.Id, "/")
-
-		// Remove empty part in case of leading '/' in id
-		if parts[0] == "" {
-			parts = parts[1:]
-		}
-
-		return strings.Join(parts, "_")
-	}
-
-	return s.Id
 }

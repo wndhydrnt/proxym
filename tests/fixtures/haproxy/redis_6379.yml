@@ -1,5 +1,0 @@
----
-
-config: |
-  option tcpka
-  option tcplog

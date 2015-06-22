@@ -26,11 +26,8 @@ type Apps struct {
 
 // Configuration as required by the Notifier and ServiceGenerator.
 type Config struct {
-	HttpHost string `envconfig:"http_host"`
-	HttpPort string `envconfig:"http_port"`
-	Enabled  bool
-	Endpoint string
-	Servers  string
+	Enabled bool
+	Servers string
 }
 
 // A container as returned by the Marathon REST API.
@@ -73,8 +70,9 @@ func NewNotifier(c *Config) *Watcher {
 	httpClient := &http.Client{}
 
 	return &Watcher{
-		config:     c,
-		httpClient: httpClient,
+		config:            c,
+		httpClient:        httpClient,
+		httpListenAddress: manager.DefaultManager.Config.ListenAddress,
 	}
 }
 
@@ -97,6 +95,8 @@ func init() {
 		n := NewNotifier(&c)
 
 		manager.AddNotifier(n)
+
+		manager.RegisterHttpEndpoint("POST", "/marathon", "/callback", n.callbackHandler)
 
 		sg := NewServiceGenerator(&c)
 

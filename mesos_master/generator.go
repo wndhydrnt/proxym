@@ -10,27 +10,28 @@ type MesosMasterServiceGenerator struct {
 	hc     *http.Client
 }
 
-func (m *MesosMasterServiceGenerator) Generate() ([]types.Service, error) {
+func (m *MesosMasterServiceGenerator) Generate() ([]*types.Service, error) {
 	master := pickMaster(m.config.Masters)
 
 	leader, err := query(m.hc, master)
 	if err != nil {
-		return []types.Service{}, err
+		return []*types.Service{}, err
 	}
 
 	host, err := parseLeader(leader)
 	if err != nil {
-		return []types.Service{}, err
+		return []*types.Service{}, err
 	}
 
-	service := types.Service{
-		Domain:   m.config.Domain,
-		Hosts:    []types.Host{host},
-		Id:       "/mesos-master",
-		Port:     80,
-		Protocol: "tcp",
-		Source:   "Mesos Master",
+	service := &types.Service{
+		ApplicationProtocol: "http",
+		Domains:             []string{m.config.Domain},
+		Hosts:               []types.Host{host},
+		Id:                  "/mesos-master",
+		Port:                80,
+		TransportProtocol:   "tcp",
+		Source:              "Mesos Master",
 	}
 
-	return []types.Service{service}, nil
+	return []*types.Service{service}, nil
 }

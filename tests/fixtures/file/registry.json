@@ -1,7 +1,8 @@
 {
-  "domain": "registry.example.com",
+  "applicationProtocol": "http",
+  "domains": ["registry.example.com"],
   "id": "/registry",
-  "protocol": "tcp",
+  "transportProtocol": "tcp",
   "port": 80,
   "hosts": [
     {"ip": "10.10.10.10", "port": 31002}
