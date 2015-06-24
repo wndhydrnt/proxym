@@ -76,7 +76,6 @@ func (m *Manager) Run() {
 		go notifier.Start(m.refresh, m.quit, m.waitGroup)
 	}
 
-	log.AppLog.Debug(m.Config.ListenAddress)
 	go http.ListenAndServe(m.Config.ListenAddress, m.httpRouter)
 
 	// Refresh right on startup
