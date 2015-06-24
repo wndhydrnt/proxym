@@ -9,6 +9,7 @@ Features:
 * `types.Service` now exposes a `Source` field which can be checked in templates.
 * Added the ability to define `ApplicationProtocol` and `TransportProtocol` in `types.Service`.
 * New module Annotation Api
+* Notifier in module File that triggers when a file is added/changed/removed.
 
 Improvements:
 
