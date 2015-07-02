@@ -5,12 +5,12 @@ import (
 )
 
 type Annotator interface {
-	Annotate(services []*Service)
+	Annotate(services []*Service) error
 }
 
 // A ConfigGenerator creates a configuration from several services.
 type ConfigGenerator interface {
-	Generate(services []*Service)
+	Generate(services []*Service) error
 }
 
 // A Notifier recognizes changes in your system. For example, it could regularly poll an API or listen on an event bus.

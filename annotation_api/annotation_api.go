@@ -81,7 +81,7 @@ type AnnotationApi struct {
 	zkCon    *zk.Conn
 }
 
-func (h *AnnotationApi) Annotate(services []*types.Service) {
+func (h *AnnotationApi) Annotate(services []*types.Service) error {
 	for _, service := range services {
 		annotation, err := h.registry.Get(service.Id)
 		if err != nil {
@@ -96,6 +96,8 @@ func (h *AnnotationApi) Annotate(services []*types.Service) {
 		}
 		service.Domains = append(service.Domains, annotation.Domains...)
 	}
+
+	return nil
 }
 
 func (h *AnnotationApi) Start(refresh chan string, quit chan int, wg *sync.WaitGroup) {
