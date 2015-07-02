@@ -6,6 +6,11 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "bitbucket.org/ww/goautoneg",
+			"Comment": "null-5",
+			"Rev": "75cd24fc2f2c2a2088577d12123ddee5f54e0675"
+		},
+		{
 			"ImportPath": "github.com/BurntSushi/toml",
 			"Comment": "v0.1.0-21-g056c9bc",
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
@@ -20,6 +25,10 @@
 			"Rev": "dcfedd50ed5334f96adee43fc88518a4f095e15c"
 		},
 		{
+			"ImportPath": "github.com/beorn7/perks/quantile",
+			"Rev": "b965b613227fddccbfffe13eae360ed3fa822f8d"
+		},
+		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
 			"Comment": "v2.0.0-7-g73a8ef7",
 			"Rev": "73a8ef737e8ea002281a28b4cb92a1de121ad4c6"
@@ -27,6 +36,10 @@
 		{
 			"ImportPath": "github.com/eknkc/amber",
 			"Rev": "dade3a75e1ab1cf0c2cafae1397b32a99aaaef4a"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "c22ae3cf020a21ebb7ae566dccbe90fc8ea4f9ea"
 		},
 		{
 			"ImportPath": "github.com/julienschmidt/httprouter",
@@ -52,6 +65,10 @@
 			"Rev": "d5929c67198951106f49f7ea425198d0f1a08f7f"
 		},
 		{
+			"ImportPath": "github.com/matttproud/golang_protobuf_extensions/ext",
+			"Rev": "ba7d65ac66e9da93a714ca18f6d1bc7a0c09100c"
+		},
+		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
 			"Rev": "442e588f213303bec7936deba67901f8fc8f18b1"
 		},
@@ -62,6 +79,26 @@
 		{
 			"ImportPath": "github.com/opennota/urlesc",
 			"Rev": "5fa9ff0392746aeae1c4b37fcc42c65afa7a9587"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_golang/model",
+			"Comment": "0.3.2",
+			"Rev": "1cf6d4b964951c63779ba7513c57fe389b609014"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_golang/prometheus",
+			"Comment": "0.3.2",
+			"Rev": "1cf6d4b964951c63779ba7513c57fe389b609014"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_golang/text",
+			"Comment": "0.3.2",
+			"Rev": "1cf6d4b964951c63779ba7513c57fe389b609014"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_model/go",
+			"Comment": "model-0.0.2-12-gfa8ad6f",
+			"Rev": "fa8ad6fec33561be4280a8f0514318c79d7f6cb6"
 		},
 		{
 			"ImportPath": "github.com/russross/blackfriday",

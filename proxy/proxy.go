@@ -27,26 +27,24 @@ type HAProxyGenerator struct {
 }
 
 // Creates a new HAproxy config file and reloads HAProxy
-func (h *HAProxyGenerator) Generate(services []*types.Service) {
+func (h *HAProxyGenerator) Generate(services []*types.Service) error {
 	currentConfig, _ := readExistingFile(h.c.ConfigFilePath)
 	newConfig := h.config(services)
 
 	// No change. Do nothing.
 	if currentConfig == newConfig {
-		return
+		return nil
 	}
 
 	f, err := os.Create(h.c.ConfigFilePath)
 	if err != nil {
-		log.ErrorLog.Error("Unable to open config file for reading '%s': %s", h.c.ConfigFilePath, err)
-		return
+		return errors.New(fmt.Sprintf("Unable to open config file for reading '%s': %s", h.c.ConfigFilePath, err))
 	}
 	defer f.Close()
 
 	_, err = f.WriteString(newConfig)
 	if err != nil {
-		log.ErrorLog.Error("Unable to write config file '%s': %s", h.c.ConfigFilePath, err)
-		return
+		errors.New(fmt.Sprintf("Unable to write config file '%s': %s", h.c.ConfigFilePath, err))
 	}
 
 	var reloadCommand string
@@ -65,9 +63,9 @@ func (h *HAProxyGenerator) Generate(services []*types.Service) {
 
 	err = cmd.Run()
 	if err != nil {
-		log.ErrorLog.Error("Failed to reload proxy configuration: %s", err)
-		log.ErrorLog.Error("Stderr of reload command: %s", cmdErr.String())
+		return errors.New(fmt.Sprintf("Failed to reload proxy configuration -  Stderr of reload command: %s", cmdErr.String()))
 	}
+	return nil
 }
 
 func (h *HAProxyGenerator) config(services []*types.Service) string {

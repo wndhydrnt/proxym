@@ -2,6 +2,8 @@ sudo: false
 language: go
 go:
 - 1.4.1
+before_script:
+  - go get github.com/prometheus/procfs
 before_deploy: make package
 deploy:
   provider: releases

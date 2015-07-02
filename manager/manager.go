@@ -5,6 +5,7 @@ package manager
 import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/types"
 	"net/http"
@@ -20,8 +21,10 @@ type Manager struct {
 	annotators        []types.Annotator
 	Config            *Config
 	configGenerators  []types.ConfigGenerator
+	errorCounter      prometheus.Counter
 	httpRouter        *httprouter.Router
 	notifiers         []types.Notifier
+	processedCounter  prometheus.Counter
 	quit              chan int
 	refresh           chan string
 	serviceGenerators []types.ServiceGenerator
@@ -83,7 +86,13 @@ func (m *Manager) Run() {
 
 	for _ = range m.refresh {
 		log.AppLog.Debug("Refresh received")
-		m.process()
+		err := m.process()
+		if err != nil {
+			log.ErrorLog.Error("%s", err)
+			m.errorCounter.Inc()
+		} else {
+			m.processedCounter.Inc()
+		}
 	}
 }
 
@@ -92,41 +101,66 @@ func (m *Manager) Quit() {
 	m.waitGroup.Wait()
 }
 
-func (m *Manager) process() {
+func (m *Manager) process() error {
 	var services []*types.Service
 	for _, sg := range m.serviceGenerators {
 		svrs, err := sg.Generate()
 		if err != nil {
-			log.ErrorLog.Error("Error generating services: '%s'", err)
-			continue
+			return err
 		}
 
 		services = append(services, svrs...)
 	}
 
 	for _, a := range m.annotators {
-		a.Annotate(services)
+		err := a.Annotate(services)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, cg := range m.configGenerators {
-		cg.Generate(services)
+		err := cg.Generate(services)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // Creates and returns a new Manager.
-func New() Manager {
+func New() *Manager {
 	refreshChannel := make(chan string, 10)
 	quitChannel := make(chan int)
+
+	errorCounter := prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: "proxym",
+		Name:      "error",
+		Help:      "Number of failed runs",
+	})
+	prometheus.MustRegister(errorCounter)
+
+	processedCounter := prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: "proxym",
+		Name:      "processed",
+		Help:      "Number of processed runs",
+	})
+	prometheus.MustRegister(processedCounter)
 
 	var c Config
 	envconfig.Process("proxym", &c)
 
-	log.AppLog.Debug(c.ListenAddress)
-
-	return Manager{Config: &c, httpRouter: httprouter.New(), refresh: refreshChannel, quit: quitChannel}
+	return &Manager{
+		Config:           &c,
+		errorCounter:     errorCounter,
+		httpRouter:       httprouter.New(),
+		processedCounter: processedCounter,
+		refresh:          refreshChannel,
+		quit:             quitChannel,
+	}
 }
 
-var DefaultManager Manager = New()
+var DefaultManager *Manager = New()
 
 // Add an Annotator
 func AddAnnotator(a types.Annotator) {
