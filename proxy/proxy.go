@@ -16,10 +16,9 @@ import (
 )
 
 type Config struct {
-	BinaryPath     string `envconfig:"binary_path"`
 	ConfigFilePath string `envconfig:"config_file_path"`
 	Enabled        bool
-	PidPath        string `envconfig:"pid_path"`
+	ReloadCommand  string `envconfig:"reload_command"`
 	TemplatePath   string `envconfig:"template_path"`
 }
 
@@ -50,37 +49,37 @@ func (h *HAProxyGenerator) Generate(services []*types.Service) {
 		return
 	}
 
-	cmdParts := []string{"-f", h.c.ConfigFilePath, "-p", h.c.PidPath}
+	var reloadCommand string
 
-	pid, err := readExistingFile(h.c.PidPath)
-	if err == nil {
-		cmdParts = append(cmdParts, "-sf")
-		cmdParts = append(cmdParts, pid)
+	if strings.Contains(h.c.ReloadCommand, "%%s") {
+		reloadCommand = fmt.Sprintf(h.c.ReloadCommand, h.c.ConfigFilePath)
+	} else {
+		reloadCommand = h.c.ReloadCommand
 	}
 
-	cmd := exec.Command(h.c.BinaryPath, cmdParts...)
+	cmd := exec.Command("/bin/bash", "-c", reloadCommand)
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
 
-	log.AppLog.Info("Restarting HAProxy")
+	log.AppLog.Info("Reloading proxy configuration")
 
 	err = cmd.Run()
 	if err != nil {
-		log.ErrorLog.Error("Failed to start HAProxy: %s", err)
-		log.ErrorLog.Error("HAProxy Stderr: %s", cmdErr.String())
+		log.ErrorLog.Error("Failed to reload proxy configuration: %s", err)
+		log.ErrorLog.Error("Stderr of reload command: %s", cmdErr.String())
 	}
 }
 
 func (h *HAProxyGenerator) config(services []*types.Service) string {
 	globalConfig, err := readExistingFile(h.c.TemplatePath)
 	if err != nil {
-		log.ErrorLog.Error("Unable to read global config. Stopping HAProxy config generator: %s", err)
+		log.ErrorLog.Error("Unable to read global config. Stopping proxy config generator: %s", err)
 		return ""
 	}
 
 	var out bytes.Buffer
 
-	tpl, err := tpl.New().New("haproxy").Parse(globalConfig)
+	tpl, err := tpl.New().New("proxy").Parse(globalConfig)
 	if err != nil {
 		log.ErrorLog.Error("%s", err)
 		return ""
@@ -140,7 +139,7 @@ func NewGenerator(c *Config) *HAProxyGenerator {
 func init() {
 	var c Config
 
-	envconfig.Process("proxym_haproxy", &c)
+	envconfig.Process("proxym_proxy", &c)
 
 	if c.Enabled {
 		cg := NewGenerator(&c)

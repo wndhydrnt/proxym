@@ -4,8 +4,8 @@
 
 Features:
 
-* HAProxy Config Generator: Generate the configuration file of HAProxy from a template.
-  It uses the hugo templating engine.
+* Proxy Config Generator: Generate the configuration file from a template.
+  Uses the hugo templating engine.
 * `types.Service` now exposes a `Source` field which can be checked in templates.
 * Added the ability to define `ApplicationProtocol` and `TransportProtocol` in `types.Service`.
 * New module Annotation Api
@@ -13,8 +13,8 @@ Features:
 
 Improvements:
 
-* HAProxy Config Generator: Do not detect HTTP via the `ServicePort` of a service.
-  Configure it in a YAML configuration file instead.
+* Make HAProxy module work with other load balancers. Rename it to Proxy.
+* Proxy Config Generator: Do not detect HTTP via the `ServicePort` of a service.
 
 Bugfixes:
 
