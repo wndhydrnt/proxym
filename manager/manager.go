@@ -149,7 +149,7 @@ func New() *Manager {
 	var c Config
 	envconfig.Process("proxym", &c)
 
-	return &Manager{
+	m := &Manager{
 		Config:           &c,
 		errorCounter:     errorCounter,
 		httpRouter:       httprouter.New(),
@@ -157,6 +157,14 @@ func New() *Manager {
 		refresh:          refreshChannel,
 		quit:             quitChannel,
 	}
+
+	prometheusHandler := prometheus.Handler()
+
+	m.RegisterHttpEndpoint("GET", "/metrics", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		prometheusHandler.ServeHTTP(w, r)
+	})
+
+	return m
 }
 
 var DefaultManager *Manager = New()
