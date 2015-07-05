@@ -19,14 +19,14 @@ func TestShouldTriggerRefreshWhenMasterChanges(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" && r.RequestURI == "/master/state.json" {
-			var s State
+			var s state
 
 			if reqCount == 0 {
-				s = State{Leader: "master@10.10.10.10:5050"}
+				s = state{Leader: "master@10.10.10.10:5050"}
 			}
 
 			if reqCount != 0 {
-				s = State{Leader: "master@10.11.10.10:5050"}
+				s = state{Leader: "master@10.11.10.10:5050"}
 			}
 
 			reqCount = reqCount + 1
@@ -41,12 +41,17 @@ func TestShouldTriggerRefreshWhenMasterChanges(t *testing.T) {
 		}
 	}))
 
+	lr := &leaderRegistry{
+		mutex: &sync.Mutex{},
+	}
+
 	n := MesosMasterNotifier{
 		config: &Config{
 			Masters:      ts.URL,
 			PollInterval: 1,
 		},
-		hc: &http.Client{},
+		hc:             &http.Client{},
+		leaderRegistry: lr,
 	}
 
 	go n.Start(refresh, make(chan int), wg)
@@ -58,6 +63,9 @@ func TestShouldTriggerRefreshWhenMasterChanges(t *testing.T) {
 		if msg != "refresh" {
 			require.FailNow(t, "Expect message from refresh channel to be of value 'refresh'")
 		}
+		host := lr.get()
+		require.Equal(t, "10.11.10.10", host.Ip)
+		require.Equal(t, 5050, host.Port)
 	default:
 		require.FailNow(t, "Expect to receive message from refresh channel")
 	}

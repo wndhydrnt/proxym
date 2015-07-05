@@ -2,32 +2,25 @@ package mesos_master
 
 import (
 	"github.com/wndhydrnt/proxym/types"
-	"net/http"
 )
 
 type MesosMasterServiceGenerator struct {
-	config *Config
-	hc     *http.Client
+	config         *Config
+	leaderRegistry *leaderRegistry
 }
 
 func (m *MesosMasterServiceGenerator) Generate() ([]*types.Service, error) {
-	master := pickMaster(m.config.Masters)
+	host := m.leaderRegistry.get()
 
-	leader, err := query(m.hc, master)
-	if err != nil {
-		return []*types.Service{}, err
-	}
-
-	host, err := parseLeader(leader)
-	if err != nil {
-		return []*types.Service{}, err
+	if host.Ip == "" {
+		return []*types.Service{}, nil
 	}
 
 	service := &types.Service{
 		ApplicationProtocol: "http",
 		Domains:             []string{m.config.Domain},
 		Hosts:               []types.Host{host},
-		Id:                  "/mesos-master",
+		Id:                  "mesos_master",
 		Port:                80,
 		TransportProtocol:   "tcp",
 		Source:              "Mesos Master",

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -22,7 +23,25 @@ type Config struct {
 	PollInterval int `env_config:"poll_interval"`
 }
 
-type State struct {
+type leaderRegistry struct {
+	leader types.Host
+	mutex  *sync.Mutex
+}
+
+func (lr *leaderRegistry) get() types.Host {
+	lr.mutex.Lock()
+	defer lr.mutex.Unlock()
+	return lr.leader
+}
+
+func (lr *leaderRegistry) set(h types.Host) {
+	lr.mutex.Lock()
+	defer lr.mutex.Unlock()
+
+	lr.leader = h
+}
+
+type state struct {
 	Leader string
 }
 
@@ -48,7 +67,7 @@ func pickMaster(masters string) string {
 }
 
 func query(hc *http.Client, master string) (string, error) {
-	var state State
+	var state state
 
 	url := master + "/master/state.json"
 
@@ -69,6 +88,19 @@ func query(hc *http.Client, master string) (string, error) {
 	}
 
 	return state.Leader, nil
+}
+
+func leader(hc *http.Client, masters string) (types.Host, error) {
+	var host types.Host
+
+	master := pickMaster(masters)
+
+	leaderId, err := query(hc, master)
+	if err != nil {
+		return host, err
+	}
+
+	return parseLeader(leaderId)
 }
 
 func sanitizeConfig(c *Config) error {
@@ -95,21 +127,25 @@ func init() {
 	if c.Enabled {
 		err := sanitizeConfig(&c)
 		if err != nil {
-			log.ErrorLog.Error("Not initializing module Mesos Master: '%s'", err)
+			log.ErrorLog.Critical("Not initializing module Mesos Master: '%s'", err)
 			return
 		}
 
 		hc := &http.Client{}
+		lr := &leaderRegistry{
+			mutex: &sync.Mutex{},
+		}
 
 		n := &MesosMasterNotifier{
-			config: &c,
-			hc:     hc,
+			config:         &c,
+			hc:             hc,
+			leaderRegistry: lr,
 		}
 		manager.AddNotifier(n)
 
 		sg := &MesosMasterServiceGenerator{
-			config: &c,
-			hc:     hc,
+			config:         &c,
+			leaderRegistry: lr,
 		}
 		manager.AddServiceGenerator(sg)
 	}

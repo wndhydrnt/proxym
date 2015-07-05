@@ -4,7 +4,8 @@
 
 Improvements:
 
-* `manager.RegisterHttpEndpoint` expects only a path and not a prefix + pattern
+* [Manager] `manager.RegisterHttpEndpoint` expects only a path and not a prefix + pattern
+* [Mesos Master] Reduce number of requests to a Mesos Master
 
 ## 1.3.0
 
