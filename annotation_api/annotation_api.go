@@ -250,9 +250,9 @@ func init() {
 
 		http := NewHttp(zkCon)
 
-		manager.RegisterHttpEndpoint("DELETE", httpPrefix, "/:serviceId", http.deleteAnnotation)
-		manager.RegisterHttpEndpoint("GET", httpPrefix, "", http.listAnnotations)
-		manager.RegisterHttpEndpoint("OPTIONS", httpPrefix, "/:serviceId", http.optionsAnnotation)
-		manager.RegisterHttpEndpoint("POST", httpPrefix, "/:serviceId", http.createAnnotation)
+		manager.RegisterHttpEndpoint("DELETE", httpPrefix+"/:serviceId", http.deleteAnnotation)
+		manager.RegisterHttpEndpoint("GET", httpPrefix, http.listAnnotations)
+		manager.RegisterHttpEndpoint("OPTIONS", httpPrefix+"/:serviceId", http.optionsAnnotation)
+		manager.RegisterHttpEndpoint("POST", httpPrefix+"/:serviceId", http.createAnnotation)
 	}
 }

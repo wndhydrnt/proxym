@@ -1,6 +1,12 @@
 # Changelog
 
-## 1.3.0 (unreleased)
+## 1.4.0 (unreleased)
+
+Improvements:
+
+* `manager.RegisterHttpEndpoint` expects only a path and not a prefix + pattern
+
+## 1.3.0
 
 Features:
 

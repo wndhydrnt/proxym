@@ -21,7 +21,7 @@ func main() {
 
 	handler := prometheus.Handler()
 
-	manager.RegisterHttpEndpoint("GET", "/metrics", "", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	manager.RegisterHttpEndpoint("GET", "/metrics", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		handler.ServeHTTP(w, r)
 	})
 

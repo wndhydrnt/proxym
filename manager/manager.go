@@ -60,9 +60,8 @@ func (m *Manager) AddServiceGenerator(sg types.ServiceGenerator) *Manager {
 }
 
 // Register an endpoint with the HTTP server
-func (m *Manager) RegisterHttpEndpoint(method string, prefix string, pattern string, handle httprouter.Handle) *Manager {
-	log.AppLog.Debug("Registering HTTP endpoint on '%s%s' with method '%s'", prefix, pattern, method)
-	path := prefix + pattern
+func (m *Manager) RegisterHttpEndpoint(method string, path string, handle httprouter.Handle) *Manager {
+	log.AppLog.Debug("Registering HTTP endpoint on '%s' with method '%s'", path, method)
 
 	m.httpRouter.Handle(method, path, handle)
 
@@ -182,8 +181,8 @@ func AddServiceGenerator(sg types.ServiceGenerator) {
 	DefaultManager.AddServiceGenerator(sg)
 }
 
-func RegisterHttpEndpoint(method string, prefix string, pattern string, handle httprouter.Handle) {
-	DefaultManager.RegisterHttpEndpoint(method, prefix, pattern, handle)
+func RegisterHttpEndpoint(method string, path string, handle httprouter.Handle) {
+	DefaultManager.RegisterHttpEndpoint(method, path, handle)
 }
 
 // Start the default manager.
