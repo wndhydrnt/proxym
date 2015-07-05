@@ -56,7 +56,7 @@ func (h *Http) createAnnotation(w http.ResponseWriter, r *http.Request, params h
 
 		oldA := &Annotation{}
 		json.Unmarshal(zkData, oldA)
-		if oldA.Config != annotation.Config || oldA.ApplicationProtocol != annotation.ApplicationProtocol || !compareDomains(oldA.Domains, annotation.Domains) {
+		if oldA.Config != annotation.Config || oldA.ApplicationProtocol != annotation.ApplicationProtocol || oldA.ProxyPath != annotation.ProxyPath || !compareDomains(oldA.Domains, annotation.Domains) {
 			newData, err := json.Marshal(annotation)
 			if err != nil {
 				log.ErrorLog.Error("Error marshalling Annotation: '%s'", err)

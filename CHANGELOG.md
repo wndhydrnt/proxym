@@ -2,6 +2,10 @@
 
 ## 1.4.0 (unreleased)
 
+Features:
+
+* [Core] Support proxying based on path
+
 Improvements:
 
 * [Manager] `manager.RegisterHttpEndpoint` expects only a path and not a prefix + pattern

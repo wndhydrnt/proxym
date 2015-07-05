@@ -24,6 +24,7 @@ type Annotation struct {
 	Config              string   `json:"config,omitempty"`
 	Domains             []string `json:"domains,omitempty"`
 	Id                  string   `json:"id,omitempty"`
+	ProxyPath           string   `json:"proxyPath,omitempty"`
 }
 
 type annotationsRegistry struct {
@@ -93,6 +94,9 @@ func (h *AnnotationApi) Annotate(services []*types.Service) error {
 		}
 		if annotation.ApplicationProtocol != "" {
 			service.ApplicationProtocol = annotation.ApplicationProtocol
+		}
+		if annotation.ProxyPath != "" {
+			service.ProxyPath = annotation.ProxyPath
 		}
 		service.Domains = append(service.Domains, annotation.Domains...)
 	}

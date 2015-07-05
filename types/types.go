@@ -37,6 +37,7 @@ type Service struct {
 	Hosts               []Host
 	Id                  string
 	Port                int
+	ProxyPath           string
 	ServicePort         int
 	Source              string
 	TransportProtocol   string
