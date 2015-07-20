@@ -40,6 +40,7 @@ type Service struct {
 	ProxyPath           string
 	ServicePort         int
 	Source              string
+	Tags                map[string]string
 	TransportProtocol   string
 }
 
