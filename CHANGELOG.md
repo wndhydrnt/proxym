@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.4.0 (unreleased)
+## 1.5.0 (unreleased)
+
+## 1.4.0
 
 Features:
 
