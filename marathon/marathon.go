@@ -17,6 +17,7 @@ const (
 type App struct {
 	Id        string
 	Container Container
+	Labels    map[string]string
 }
 
 // A list of applications as returned by the Marathon REST API.

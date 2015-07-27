@@ -90,6 +90,7 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []*types.Servic
 
 			if index == -1 {
 				service.Id = normalizeId(task.AppId, containerPort)
+				service.Attributes = app.Labels
 				service.Port = containerPort
 				service.TransportProtocol = app.Container.Docker.PortMappings[i].Protocol
 				service.ServicePort = task.ServicePorts[i]

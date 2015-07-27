@@ -32,6 +32,7 @@ type Host struct {
 
 type Service struct {
 	ApplicationProtocol string
+	Attributes          map[string]string
 	Config              string
 	Domains             []string
 	Hosts               []Host
@@ -40,7 +41,6 @@ type Service struct {
 	ProxyPath           string
 	ServicePort         int
 	Source              string
-	Tags                map[string]string
 	TransportProtocol   string
 }
 

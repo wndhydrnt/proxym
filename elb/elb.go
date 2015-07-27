@@ -25,12 +25,12 @@ type ElbSynchroniser struct {
 
 func (e *ElbSynchroniser) Generate(services []*types.Service) error {
 	for _, service := range services {
-		elbName, ok := service.Tags["elb:name"]
+		elbName, ok := service.Attributes["proxym:elb:name"]
 		if ok == false {
 			continue
 		}
 
-		elbRegion, ok := service.Tags["elb:region"]
+		elbRegion, ok := service.Attributes["proxym:elb:region"]
 		if ok == false {
 			continue
 		}

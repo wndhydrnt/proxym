@@ -22,6 +22,9 @@ func TestServicesFromMarathon(t *testing.T) {
 								PortMappings: []PortMapping{PortMapping{ContainerPort: 6379, Protocol: "tcp", ServicePort: 41000}},
 							},
 						},
+						Labels: map[string]string{
+							"environment": "unittest",
+						},
 					},
 					App{
 						Id: "/registry",
@@ -100,6 +103,8 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, 31001, services[0].Hosts[0].Port)
 	require.Equal(t, services[0].Hosts[1].Ip, "10.10.10.10")
 	require.Equal(t, services[0].Hosts[1].Port, 31003)
+	require.Len(t, services[0].Attributes, 1)
+	require.Equal(t, "unittest", services[0].Attributes["environment"])
 
 	require.Equal(t, services[1].Id, "marathon_registry_5000")
 	require.Len(t, services[1].Domains, 0)
@@ -109,6 +114,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[1].Source, "Marathon")
 	require.Equal(t, services[1].Hosts[0].Ip, "10.10.10.10")
 	require.Equal(t, services[1].Hosts[0].Port, 31002)
+	require.Len(t, services[1].Attributes, 0)
 
 	require.Equal(t, services[2].Id, "marathon_graphite-statsd_80")
 	require.Len(t, services[2].Domains, 0)
@@ -118,6 +124,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[2].Source, "Marathon")
 	require.Equal(t, services[2].Hosts[0].Ip, "10.10.10.11")
 	require.Equal(t, services[2].Hosts[0].Port, 31001)
+	require.Len(t, services[2].Attributes, 0)
 
 	require.Equal(t, services[3].Id, "marathon_graphite-statsd_2003")
 	require.Len(t, services[3].Domains, 0)
@@ -127,6 +134,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[3].Source, "Marathon")
 	require.Equal(t, services[3].Hosts[0].Ip, "10.10.10.11")
 	require.Equal(t, services[3].Hosts[0].Port, 31002)
+	require.Len(t, services[3].Attributes, 0)
 
 	require.Equal(t, services[4].Id, "marathon_graphite-statsd_8125")
 	require.Len(t, services[4].Domains, 0)
@@ -136,6 +144,7 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[4].Source, "Marathon")
 	require.Equal(t, services[4].Hosts[0].Ip, "10.10.10.11")
 	require.Equal(t, services[4].Hosts[0].Port, 31003)
+	require.Len(t, services[4].Attributes, 0)
 }
 
 func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
