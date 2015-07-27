@@ -21,12 +21,11 @@ type Manager struct {
 	annotators        []types.Annotator
 	Config            *Config
 	configGenerators  []types.ConfigGenerator
-	errorCounter      prometheus.Counter
 	httpRouter        *httprouter.Router
 	notifiers         []types.Notifier
-	processedCounter  prometheus.Counter
 	quit              chan int
 	refresh           chan string
+	refreshCounter    *prometheus.CounterVec
 	serviceGenerators []types.ServiceGenerator
 	waitGroup         *sync.WaitGroup
 }
@@ -88,9 +87,9 @@ func (m *Manager) Run() {
 		err := m.process()
 		if err != nil {
 			log.ErrorLog.Error("%s", err)
-			m.errorCounter.Inc()
+			m.refreshCounter.WithLabelValues("error").Inc()
 		} else {
-			m.processedCounter.Inc()
+			m.refreshCounter.WithLabelValues("success").Inc()
 		}
 	}
 }
@@ -132,30 +131,23 @@ func New() *Manager {
 	refreshChannel := make(chan string, 10)
 	quitChannel := make(chan int)
 
-	errorCounter := prometheus.NewCounter(prometheus.CounterOpts{
+	refreshCounter := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "proxym",
-		Name:      "error",
-		Help:      "Number of failed runs",
-	})
-	prometheus.MustRegister(errorCounter)
-
-	processedCounter := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "proxym",
-		Name:      "processed",
-		Help:      "Number of processed runs",
-	})
-	prometheus.MustRegister(processedCounter)
+		Subsystem: "refresh",
+		Name:      "count",
+		Help:      "Number of refreshes triggered",
+	}, []string{"result"})
+	prometheus.MustRegister(refreshCounter)
 
 	var c Config
 	envconfig.Process("proxym", &c)
 
 	m := &Manager{
-		Config:           &c,
-		errorCounter:     errorCounter,
-		httpRouter:       httprouter.New(),
-		processedCounter: processedCounter,
-		refresh:          refreshChannel,
-		quit:             quitChannel,
+		Config:         &c,
+		httpRouter:     httprouter.New(),
+		refresh:        refreshChannel,
+		refreshCounter: refreshCounter,
+		quit:           quitChannel,
 	}
 
 	prometheusHandler := prometheus.Handler()

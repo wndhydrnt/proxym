@@ -9,7 +9,11 @@ Features:
 Improvements:
 
 * [Manager] `manager.RegisterHttpEndpoint` expects only a path and not a prefix + pattern
+* [Manager] Use one metric with different label names to record successful and failed runs
 * [Mesos Master] Reduce number of requests to a Mesos Master
+
+Bug Fixes:
+* [Mesos Master] Do not prefix the Id of emitted the service with `/`
 
 ## 1.3.0
 
