@@ -13,7 +13,7 @@ import (
 )
 
 type Config struct {
-	ListenAddress string `envconfig:"listen_address"`
+	ListenAddress string `envconfig:"listen_address",default:":5678"`
 }
 
 // Manager orchestrates Notifiers, ServiceGenerators and ConfigGenerators.
