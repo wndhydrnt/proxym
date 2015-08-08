@@ -16,6 +16,7 @@ import (
 )
 
 type Config struct {
+	CheckCommand   string `envconfig:"check_command"`
 	ConfigFilePath string `envconfig:"config_file_path"`
 	Enabled        bool
 	ReloadCommand  string `envconfig:"reload_command"`
@@ -44,7 +45,19 @@ func (h *HAProxyGenerator) Generate(services []*types.Service) error {
 
 	_, err = f.WriteString(newConfig)
 	if err != nil {
-		errors.New(fmt.Sprintf("Unable to write config file '%s': %s", h.c.ConfigFilePath, err))
+		return errors.New(fmt.Sprintf("Unable to write config file '%s': %s", h.c.ConfigFilePath, err))
+	}
+
+	if h.c.CheckCommand != "" {
+		cmd := exec.Command("/bin/bash", "-c", h.c.CheckCommand)
+
+		var cmdErr bytes.Buffer
+		cmd.Stderr = &cmdErr
+
+		err := cmd.Run()
+		if err != nil {
+			return errors.New(fmt.Sprintf("Check of proxy configuration file failed: %s", cmdErr.String()))
+		}
 	}
 
 	var reloadCommand string
@@ -71,7 +84,7 @@ func (h *HAProxyGenerator) Generate(services []*types.Service) error {
 func (h *HAProxyGenerator) config(services []*types.Service) string {
 	globalConfig, err := readExistingFile(h.c.TemplatePath)
 	if err != nil {
-		log.ErrorLog.Error("Unable to read global config. Stopping proxy config generator: %s", err)
+		log.ErrorLog.Error("Unable to read config template. Stopping proxy config generator: %s", err)
 		return ""
 	}
 

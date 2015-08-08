@@ -2,6 +2,10 @@
 
 ## 1.5.0 (unreleased)
 
+Improvements:
+
+* [Proxy] Define a command to check the configuration file
+
 Bug Fixes:
 * [Docs] Syntax error in example configuration file of HAProxy
 

@@ -94,10 +94,11 @@ Environment variables:
 
 Name | Description | Required | Default
 ---- | ----------- | -------- | -------
+PROXYM_PROXY_CHECK_COMMAND | Validate the generated configuration file before attempting to restart the proxy, e.g. `nginx -t -c ~/mynginx.conf` | no | None
 PROXYM_PROXY_CONFIG_FILE_PATH | An absolute path where the generated config file will be stored, e.g. `/etc/nginx/nginx.conf` | yes | None
 PROXYM_PROXY_ENABLED | Enable this module. | no | 0
 PROXYM_PROXY_RELOAD_COMMAND | The command to issue if the configuration file has changed, e.g. `nginx -s reload`. The reload command is wrapped with `/bin/bash -c` | yes | None
-PROXYM_PROXY_TEMPLATE_PATH | Path to the template used to generate a HAProxy configuration file, e.g. `/etc/nginx/nginx.conf.tpl` | yes | None
+PROXYM_PROXY_TEMPLATE_PATH | Path to the template used to generate the configuration file of the proxy, e.g. `/etc/nginx/nginx.conf.tpl` | yes | None
 
 #### Configuration File Template
 
