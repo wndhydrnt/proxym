@@ -2,6 +2,9 @@
 
 ## 1.5.0 (unreleased)
 
+Bug Fixes:
+* [Docs] Syntax error in example configuration file of HAProxy
+
 ## 1.4.0
 
 Features:
@@ -15,7 +18,7 @@ Improvements:
 * [Mesos Master] Reduce number of requests to a Mesos Master
 
 Bug Fixes:
-* [Mesos Master] Do not prefix the Id of emitted the service with `/`
+* [Mesos Master] Do not prefix the Id of emitted service with `/`
 
 ## 1.3.0
 
