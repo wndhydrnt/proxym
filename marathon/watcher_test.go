@@ -3,7 +3,6 @@ package marathon
 import (
 	"bytes"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/require"
 	"log"
 	"net/http"
@@ -58,7 +57,7 @@ func TestReactsToStatusUpdateEvent(t *testing.T) {
 		refreshChannel: refresh,
 	}
 
-	watcher.callbackHandler(w, req, httprouter.Params{})
+	watcher.callbackHandler(w, req)
 
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, "", w.Body.String())
@@ -90,7 +89,7 @@ func TestIgnoresDifferentEvent(t *testing.T) {
 		refreshChannel: refresh,
 	}
 
-	watcher.callbackHandler(w, req, httprouter.Params{})
+	watcher.callbackHandler(w, req)
 
 	require.Equal(t, 200, w.Code)
 	require.Equal(t, "", w.Body.String())

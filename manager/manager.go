@@ -3,7 +3,7 @@
 package manager
 
 import (
-	"github.com/julienschmidt/httprouter"
+	"github.com/bmizerany/pat"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/wndhydrnt/proxym/log"
@@ -21,7 +21,7 @@ type Manager struct {
 	annotators        []types.Annotator
 	Config            *Config
 	configGenerators  []types.ConfigGenerator
-	httpRouter        *httprouter.Router
+	httpRouter        *pat.PatternServeMux
 	notifiers         []types.Notifier
 	quit              chan int
 	refresh           chan string
@@ -59,12 +59,16 @@ func (m *Manager) AddServiceGenerator(sg types.ServiceGenerator) *Manager {
 }
 
 // Register an endpoint with the HTTP server
-func (m *Manager) RegisterHttpEndpoint(method string, path string, handle httprouter.Handle) *Manager {
+func (m *Manager) RegisterHttpHandler(method string, path string, handle http.Handler) *Manager {
 	log.AppLog.Debug("Registering HTTP endpoint on '%s' with method '%s'", path, method)
 
-	m.httpRouter.Handle(method, path, handle)
+	m.httpRouter.Add(method, path, prometheus.InstrumentHandler(path, handle))
 
 	return m
+}
+
+func (m *Manager) RegisterHttpHandleFunc(method, path string, handle func(w http.ResponseWriter, r *http.Request)) {
+	m.RegisterHttpHandler(method, path, http.HandlerFunc(handle))
 }
 
 // Starts every notifier and listens for messages that trigger a refresh.
@@ -144,17 +148,13 @@ func New() *Manager {
 
 	m := &Manager{
 		Config:         &c,
-		httpRouter:     httprouter.New(),
+		httpRouter:     pat.New(),
 		refresh:        refreshChannel,
 		refreshCounter: refreshCounter,
 		quit:           quitChannel,
 	}
 
-	prometheusHandler := prometheus.Handler()
-
-	m.RegisterHttpEndpoint("GET", "/metrics", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		prometheusHandler.ServeHTTP(w, r)
-	})
+	m.httpRouter.Get("/metrics", prometheus.Handler())
 
 	return m
 }
@@ -181,8 +181,12 @@ func AddServiceGenerator(sg types.ServiceGenerator) {
 	DefaultManager.AddServiceGenerator(sg)
 }
 
-func RegisterHttpEndpoint(method string, path string, handle httprouter.Handle) {
-	DefaultManager.RegisterHttpEndpoint(method, path, handle)
+func RegisterHttpHandler(method string, path string, handle http.Handler) {
+	DefaultManager.RegisterHttpHandler(method, path, handle)
+}
+
+func RegisterHttpHandleFunc(method, path string, handle func(w http.ResponseWriter, r *http.Request)) {
+	DefaultManager.RegisterHttpHandleFunc(method, path, handle)
 }
 
 // Start the default manager.

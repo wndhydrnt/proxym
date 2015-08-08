@@ -3,7 +3,6 @@ package annotation_api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
 	"github.com/samuel/go-zookeeper/zk"
 	"github.com/wndhydrnt/proxym/log"
 	"io/ioutil"
@@ -19,8 +18,9 @@ type Http struct {
 	zkCon *zk.Conn
 }
 
-func (h *Http) createAnnotation(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	serviceId := params.ByName("serviceId")
+func (h *Http) createAnnotation(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	serviceId := params.Get(":serviceId")
 	serviceZkPath := zookeeperPath + "/" + serviceId
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -90,10 +90,11 @@ func (h *Http) createAnnotation(w http.ResponseWriter, r *http.Request, params h
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Http) deleteAnnotation(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (h *Http) deleteAnnotation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	aId := params.ByName("serviceId")
+	params := r.URL.Query()
+	aId := params.Get(":serviceId")
 
 	err := h.zkCon.Delete(zookeeperPath+"/"+aId, int32(-1))
 	if err != nil {
@@ -105,7 +106,7 @@ func (h *Http) deleteAnnotation(w http.ResponseWriter, r *http.Request, params h
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Http) listAnnotations(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h *Http) listAnnotations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	annotationList := make([]*AnnotationListItem, 0)
@@ -152,7 +153,7 @@ func (h *Http) listAnnotations(w http.ResponseWriter, r *http.Request, _ httprou
 	w.Write(anntationListData)
 }
 
-func (h *Http) optionsAnnotation(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h *Http) optionsAnnotation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "DELETE,POST")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")

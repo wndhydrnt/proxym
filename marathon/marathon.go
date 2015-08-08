@@ -96,7 +96,7 @@ func init() {
 
 		manager.AddNotifier(n)
 
-		manager.RegisterHttpEndpoint("POST", "/marathon/callback", n.callbackHandler)
+		manager.RegisterHttpHandleFunc("POST", "/marathon/callback", n.callbackHandler)
 
 		sg := NewServiceGenerator(&c)
 

@@ -4,6 +4,7 @@
 
 Improvements:
 
+* [Manager] Wrap each HTTP handler with a Prometheus handler to expose metrics
 * [Proxy] Define a command to check the configuration file
 
 Bug Fixes:

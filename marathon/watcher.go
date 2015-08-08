@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
 	"github.com/wndhydrnt/proxym/log"
 	"io/ioutil"
 	"net/http"
@@ -43,7 +42,7 @@ func (wt *Watcher) Start(refresh chan string, quit chan int, wg *sync.WaitGroup)
 	}
 }
 
-func (wt *Watcher) callbackHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (wt *Watcher) callbackHandler(w http.ResponseWriter, r *http.Request) {
 	var event Event
 
 	body, err := ioutil.ReadAll(r.Body)
