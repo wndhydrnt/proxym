@@ -3,6 +3,7 @@ package main
 import (
 	_ "github.com/wndhydrnt/proxym/annotation_api"
 	_ "github.com/wndhydrnt/proxym/file"
+	_ "github.com/wndhydrnt/proxym/hipache"
 	proxymLog "github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/manager"
 	_ "github.com/wndhydrnt/proxym/marathon"

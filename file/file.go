@@ -89,7 +89,6 @@ func (sg *ServiceGenerator) Generate() ([]*types.Service, error) {
 }
 
 func NewServiceGenerator(c *Config) *ServiceGenerator {
-
 	return &ServiceGenerator{
 		c: c,
 	}

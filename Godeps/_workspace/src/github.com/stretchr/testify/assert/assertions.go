@@ -751,12 +751,12 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 //  assert.Regexp(t, "start...$", "it's not starting")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
+func Regexp(t TestingT, rx interface{}, str interface{}) bool {
 
 	match := matchRegexp(rx, str)
 
 	if !match {
-		Fail(t, fmt.Sprintf("Expect \"%v\" to match \"%v\"", str, rx), msgAndArgs...)
+		Fail(t, "Expect \"%v\" to match \"%v\"", str, rx)
 	}
 
 	return match
@@ -768,11 +768,11 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 //  assert.NotRegexp(t, "^start", "it's not starting")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
+func NotRegexp(t TestingT, rx interface{}, str interface{}) bool {
 	match := matchRegexp(rx, str)
 
 	if match {
-		Fail(t, fmt.Sprintf("Expect \"%v\" to NOT match \"%v\"", str, rx), msgAndArgs...)
+		Fail(t, "Expect \"%v\" to NOT match \"%v\"", str, rx)
 	}
 
 	return !match

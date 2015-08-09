@@ -46,10 +46,6 @@
 			"Rev": "c22ae3cf020a21ebb7ae566dccbe90fc8ea4f9ea"
 		},
 		{
-			"ImportPath": "github.com/julienschmidt/httprouter",
-			"Rev": "8c199fb6259ffc1af525cc3ad52ee60ba8359669"
-		},
-		{
 			"ImportPath": "github.com/kelseyhightower/envconfig",
 			"Comment": "v1.0.0-22-g4e0792c",
 			"Rev": "4e0792c28c6af6d74af7bac93eedb34a29107010"
@@ -71,6 +67,10 @@
 		{
 			"ImportPath": "github.com/matttproud/golang_protobuf_extensions/ext",
 			"Rev": "ba7d65ac66e9da93a714ca18f6d1bc7a0c09100c"
+		},
+		{
+			"ImportPath": "github.com/mediocregopher/radix.v2/redis",
+			"Rev": "a6934a6c98c908c15aebdeee77669543a77daf5a"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
@@ -164,11 +164,11 @@
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
-			"Rev": "33a31e5dbed8302d5ab7e6d12b416e95c2c4ebc0"
+			"Rev": "e897f97d666c44ddbc131f4121c2961034b4c1b4"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/require",
-			"Rev": "33a31e5dbed8302d5ab7e6d12b416e95c2c4ebc0"
+			"Rev": "e897f97d666c44ddbc131f4121c2961034b4c1b4"
 		},
 		{
 			"ImportPath": "github.com/xordataexchange/crypt/backend",

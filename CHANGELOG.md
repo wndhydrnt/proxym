@@ -2,6 +2,9 @@
 
 ## 1.5.0 (unreleased)
 
+Features:
+* [Hipache] Add support for Hipache
+
 Improvements:
 
 * [Manager] Wrap each HTTP handler with a Prometheus handler to expose metrics
