@@ -17,6 +17,7 @@ const (
 type App struct {
 	Id        string
 	Container Container
+	Ports     []int
 }
 
 // A list of applications as returned by the Marathon REST API.
@@ -37,6 +38,7 @@ type Container struct {
 
 // A Docker container as returned by the Marathon REST API.
 type Docker struct {
+	Network      string
 	PortMappings []PortMapping
 }
 

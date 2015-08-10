@@ -76,22 +76,38 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []*types.Servic
 			}
 
 			// Skip because this app does not expose any ports.
-			if len(app.Container.Docker.PortMappings) == 0 {
+			if len(app.Ports) == 0 {
 				continue
 			}
 
-			containerPort := app.Container.Docker.PortMappings[i].ContainerPort
+			var containerPort int
+			var taskPort int
+			var protocol string
+
+			// Kind of weird: When used with a HOST network, the values of task.Port are ports randomly assigned by Marathon.
+			// These ports are of no use, but they are there. task.ServicePorts contains the "real" ports.
+			if app.Container.Docker.Network == "HOST" {
+				containerPort = task.ServicePorts[i]
+				taskPort = task.ServicePorts[i]
+				// This completely leaves out udp, but there is no way to detect the transport protocol in HOST networking.
+				// As proxym does not support a proxy that supports udp, this is a reasonable default.
+				protocol = "tcp"
+			} else {
+				containerPort = app.Container.Docker.PortMappings[i].ContainerPort
+				taskPort = port
+				protocol = app.Container.Docker.PortMappings[i].Protocol
+			}
 
 			service, index := appInServices(task.AppId, containerPort, services)
 
-			host := types.Host{Ip: task.Host, Port: port}
+			host := types.Host{Ip: task.Host, Port: taskPort}
 
 			service.Hosts = append(service.Hosts, host)
 
 			if index == -1 {
 				service.Id = normalizeId(task.AppId, containerPort)
 				service.Port = containerPort
-				service.TransportProtocol = app.Container.Docker.PortMappings[i].Protocol
+				service.TransportProtocol = protocol
 				service.ServicePort = task.ServicePorts[i]
 				service.Source = "Marathon"
 				services = append(services, service)

@@ -8,6 +8,7 @@ Features:
 Improvements:
 
 * [Manager] Wrap each HTTP handler with a Prometheus handler to expose metrics
+* [Marathon] Support applications that use the `HOST` network
 * [Proxy] Define a command to check the configuration file
 
 Bug Fixes:

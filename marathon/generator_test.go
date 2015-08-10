@@ -19,22 +19,27 @@ func TestServicesFromMarathon(t *testing.T) {
 						Id: "/redis",
 						Container: Container{
 							Docker: Docker{
+								Network:      "BRIDGE",
 								PortMappings: []PortMapping{PortMapping{ContainerPort: 6379, Protocol: "tcp", ServicePort: 41000}},
 							},
 						},
+						Ports: []int{41000},
 					},
 					App{
 						Id: "/registry",
 						Container: Container{
 							Docker: Docker{
+								Network:      "BRIDGE",
 								PortMappings: []PortMapping{PortMapping{ContainerPort: 5000, Protocol: "tcp", ServicePort: 42000}},
 							},
 						},
+						Ports: []int{42000},
 					},
 					App{
 						Id: "/graphite-statsd",
 						Container: Container{
 							Docker: Docker{
+								Network: "BRIDGE",
 								PortMappings: []PortMapping{
 									PortMapping{ContainerPort: 80, Protocol: "tcp", ServicePort: 43000},
 									PortMapping{ContainerPort: 2003, Protocol: "tcp", ServicePort: 43001},
@@ -42,6 +47,16 @@ func TestServicesFromMarathon(t *testing.T) {
 								},
 							},
 						},
+						Ports: []int{43000, 43001, 43002},
+					},
+					App{
+						Id: "/host-networking",
+						Container: Container{
+							Docker: Docker{
+								Network: "HOST",
+							},
+						},
+						Ports: []int{8888},
 					},
 				},
 			}
@@ -62,6 +77,7 @@ func TestServicesFromMarathon(t *testing.T) {
 					Task{AppId: "/redis", Host: "10.10.10.10", Ports: []int{31003}, ServicePorts: []int{41000}},
 					Task{AppId: "/registry", Host: "10.10.10.10", Ports: []int{31002}, ServicePorts: []int{42000}},
 					Task{AppId: "/graphite-statsd", Host: "10.10.10.11", Ports: []int{31001, 31002, 31003}, ServicePorts: []int{43000, 43001, 43002}},
+					Task{AppId: "/host-networking", Host: "10.10.10.10", Ports: []int{31855}, ServicePorts: []int{8888}},
 				},
 			}
 
@@ -88,7 +104,7 @@ func TestServicesFromMarathon(t *testing.T) {
 
 	require.IsType(t, []*types.Service{}, services)
 
-	require.Len(t, services, 5)
+	require.Len(t, services, 6)
 
 	require.Equal(t, "marathon_redis_6379", services[0].Id)
 	require.Len(t, services[0].Domains, 0)
@@ -136,6 +152,15 @@ func TestServicesFromMarathon(t *testing.T) {
 	require.Equal(t, services[4].Source, "Marathon")
 	require.Equal(t, services[4].Hosts[0].Ip, "10.10.10.11")
 	require.Equal(t, services[4].Hosts[0].Port, 31003)
+
+	require.Equal(t, services[5].Id, "marathon_host-networking_8888")
+	require.Len(t, services[5].Domains, 0)
+	require.Equal(t, services[5].Port, 8888)
+	require.Equal(t, services[5].TransportProtocol, "tcp")
+	require.Equal(t, services[5].ServicePort, 8888)
+	require.Equal(t, services[5].Source, "Marathon")
+	require.Equal(t, services[5].Hosts[0].Ip, "10.10.10.10")
+	require.Equal(t, services[5].Hosts[0].Port, 8888)
 }
 
 func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
@@ -147,6 +172,7 @@ func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
 						Id: "/dummy",
 						Container: Container{
 							Docker: Docker{
+								Network:      "BRIDGE",
 								PortMappings: []PortMapping{},
 							},
 						},
