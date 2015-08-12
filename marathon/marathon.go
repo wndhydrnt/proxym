@@ -1,9 +1,12 @@
 package marathon
 
 import (
+	"errors"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/wndhydrnt/proxym/manager"
+	"log"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -79,13 +82,15 @@ func NewNotifier(c *Config) *Watcher {
 }
 
 // Creates and returns a new ServiceGenerator.
-func NewServiceGenerator(c *Config) *Generator {
+func NewServiceGenerator(c *Config) (*Generator, error) {
 	httpClient := &http.Client{}
+	marathonServers := strings.Split(c.Servers, ",")
 
-	return &Generator{
-		config:     c,
-		httpClient: httpClient,
+	if len(marathonServers) == 0 {
+		return nil, errors.New("PROXYM_MARATHON_SERVERS not set")
 	}
+
+	return &Generator{config: c, httpClient: httpClient, marathonServers: marathonServers}, nil
 }
 
 func init() {
@@ -100,7 +105,10 @@ func init() {
 
 		manager.RegisterHttpHandleFunc("POST", "/marathon/callback", n.callbackHandler)
 
-		sg := NewServiceGenerator(&c)
+		sg, err := NewServiceGenerator(&c)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
 		manager.AddServiceGenerator(sg)
 	}

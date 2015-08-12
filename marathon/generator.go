@@ -4,17 +4,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/types"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Generator talks to Marathon and creates a list of services as a result.
 type Generator struct {
-	config     *Config
-	httpClient *http.Client
+	config          *Config
+	httpClient      *http.Client
+	marathonServers []string
 }
 
 // Queries a Marathon master to receive running applications and tasks and generates a list of services.
@@ -22,7 +26,9 @@ func (g *Generator) Generate() ([]*types.Service, error) {
 	var apps Apps
 	var tasks Tasks
 
-	server := strings.Split(g.config.Servers, ",")[0]
+	server := pickRandomServer(g.marathonServers)
+
+	log.AppLog.Debug("Querying Marathon server at '%s'", server)
 
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s%s", server, appsEndpoint), nil)
 	req.Header.Add("Accept", "application/json")
@@ -148,4 +154,19 @@ func normalizeId(id string, port int) string {
 	parts = parts[1:]
 
 	return "marathon_" + strings.Join(parts, "_") + "_" + strconv.Itoa(port)
+}
+
+func pickRandomServer(servers []string) string {
+	if len(servers) == 1 {
+		return servers[0]
+	}
+
+	src := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(src)
+
+	max := (len(servers) * 100) - 1
+
+	pick := float64(r.Intn(max)) / 100
+
+	return servers[int(pick)]
 }

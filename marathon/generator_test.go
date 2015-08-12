@@ -96,8 +96,8 @@ func TestServicesFromMarathon(t *testing.T) {
 	c := &http.Client{}
 
 	generator := Generator{
-		httpClient: c,
-		config:     &Config{Servers: ts.URL},
+		httpClient:      c,
+		marathonServers: []string{ts.URL},
 	}
 
 	services, _ := generator.Generate()
@@ -211,8 +211,8 @@ func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
 	c := &http.Client{}
 
 	generator := Generator{
-		httpClient: c,
-		config:     &Config{Servers: ts.URL},
+		httpClient:      c,
+		marathonServers: []string{ts.URL},
 	}
 
 	services, _ := generator.Generate()

@@ -13,6 +13,7 @@ Improvements:
 
 Bug Fixes:
 * [Docs] Syntax error in example configuration file of HAProxy
+* [Marathon] Fix ServiceGenerator only picks the first server in the list [#16](https://github.com/wndhydrnt/proxym/issues/16).
 
 ## 1.4.0
 
