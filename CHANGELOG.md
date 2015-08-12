@@ -13,7 +13,8 @@ Improvements:
 
 Bug Fixes:
 * [Docs] Syntax error in example configuration file of HAProxy
-* [Marathon] Fix ServiceGenerator only picks the first server in the list [#16](https://github.com/wndhydrnt/proxym/issues/16).
+* [Marathon] Fix ServiceGenerator only picks the first server in the list [#16](https://github.com/wndhydrnt/proxym/issues/16)
+* [Mesos Master] Fix panic when no master could be parsed [#19](https://github.com/wndhydrnt/proxym/issues/19)
 
 ## 1.4.0
 

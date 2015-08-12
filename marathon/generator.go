@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/types"
+	"github.com/wndhydrnt/proxym/utils"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // Generator talks to Marathon and creates a list of services as a result.
@@ -26,7 +25,7 @@ func (g *Generator) Generate() ([]*types.Service, error) {
 	var apps Apps
 	var tasks Tasks
 
-	server := pickRandomServer(g.marathonServers)
+	server := utils.PickRandomFromList(g.marathonServers)
 
 	log.AppLog.Debug("Querying Marathon server at '%s'", server)
 
@@ -154,19 +153,4 @@ func normalizeId(id string, port int) string {
 	parts = parts[1:]
 
 	return "marathon_" + strings.Join(parts, "_") + "_" + strconv.Itoa(port)
-}
-
-func pickRandomServer(servers []string) string {
-	if len(servers) == 1 {
-		return servers[0]
-	}
-
-	src := rand.NewSource(time.Now().UnixNano())
-	r := rand.New(src)
-
-	max := (len(servers) * 100) - 1
-
-	pick := float64(r.Intn(max)) / 100
-
-	return servers[int(pick)]
 }

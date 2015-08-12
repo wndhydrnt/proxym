@@ -3,10 +3,12 @@ package mesos_master
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/manager"
 	"github.com/wndhydrnt/proxym/types"
+	"github.com/wndhydrnt/proxym/utils"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -46,7 +48,13 @@ type state struct {
 }
 
 func parseLeader(leader string) (types.Host, error) {
-	address := strings.Split(leader, "@")[1]
+	pidParts := strings.Split(leader, "@")
+
+	if len(pidParts) != 2 {
+		return types.Host{}, errors.New(fmt.Sprintf("Unable to parse Mesos Master PID %s", leader))
+	}
+
+	address := pidParts[1]
 
 	parts := strings.Split(address, ":")
 
@@ -90,10 +98,10 @@ func query(hc *http.Client, master string) (string, error) {
 	return state.Leader, nil
 }
 
-func leader(hc *http.Client, masters string) (types.Host, error) {
+func leader(hc *http.Client, masters []string) (types.Host, error) {
 	var host types.Host
 
-	master := pickMaster(masters)
+	master := utils.PickRandomFromList(masters)
 
 	leaderId, err := query(hc, master)
 	if err != nil {
@@ -131,15 +139,13 @@ func init() {
 			return
 		}
 
-		hc := &http.Client{}
 		lr := &leaderRegistry{
 			mutex: &sync.Mutex{},
 		}
 
-		n := &MesosMasterNotifier{
-			config:         &c,
-			hc:             hc,
-			leaderRegistry: lr,
+		n, err := NewMesosNotifier(&c, lr)
+		if err != nil {
+			log.ErrorLog.Fatal(err)
 		}
 		manager.AddNotifier(n)
 

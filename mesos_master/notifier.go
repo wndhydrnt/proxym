@@ -1,9 +1,11 @@
 package mesos_master
 
 import (
+	"errors"
 	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/types"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -13,6 +15,7 @@ type MesosMasterNotifier struct {
 	currentLeader  types.Host
 	hc             *http.Client
 	leaderRegistry *leaderRegistry
+	masters        []string
 }
 
 func (m *MesosMasterNotifier) Start(refresh chan string, quit chan int, wg *sync.WaitGroup) {
@@ -29,9 +32,9 @@ func (m *MesosMasterNotifier) Start(refresh chan string, quit chan int, wg *sync
 }
 
 func (m *MesosMasterNotifier) pollLeader(refresh chan string) {
-	host, err := leader(m.hc, m.config.Masters)
+	host, err := leader(m.hc, m.masters)
 	if err != nil {
-		log.ErrorLog.Error("Error getting current Mesos Master leader: '%s'", err)
+		log.ErrorLog.Error("Error getting current Mesos Master leader: %s", err)
 		return
 	}
 
@@ -46,4 +49,15 @@ func (m *MesosMasterNotifier) pollLeader(refresh chan string) {
 	}
 
 	m.currentLeader = host
+}
+
+func NewMesosNotifier(c *Config, lr *leaderRegistry) (*MesosMasterNotifier, error) {
+	hc := &http.Client{}
+	masters := strings.Split(c.Masters, ",")
+
+	if len(masters) == 0 {
+		return nil, errors.New("PROXYM_MESOS_MASTER_MASTERS is not set")
+	}
+
+	return &MesosMasterNotifier{config: c, hc: hc, leaderRegistry: lr, masters: masters}, nil
 }

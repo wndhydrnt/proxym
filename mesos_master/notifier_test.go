@@ -45,14 +45,13 @@ func TestShouldTriggerRefreshWhenMasterChanges(t *testing.T) {
 		mutex: &sync.Mutex{},
 	}
 
-	n := MesosMasterNotifier{
-		config: &Config{
+	n, _ := NewMesosNotifier(
+		&Config{
 			Masters:      ts.URL,
 			PollInterval: 1,
 		},
-		hc:             &http.Client{},
-		leaderRegistry: lr,
-	}
+		lr,
+	)
 
 	go n.Start(refresh, make(chan int), wg)
 
