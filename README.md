@@ -42,7 +42,7 @@ It takes a modular approach by dividing responsibility into three parts:
 
 ## HTTP Server
 
-proxym provides a HTTP server where modules can [register](http://godoc.org/github.com/wndhydrnt/proxym/manager#Manager.RegisterHttpEndpoint)
+proxym provides a HTTP server where modules can [register](http://godoc.org/github.com/wndhydrnt/proxym/manager#RegisterHttpHandler)
 endpoints to expose an external API.
 The listen address of the server is configured by setting the environment
 variable `PROXYM_LISTEN_ADDRESS`.

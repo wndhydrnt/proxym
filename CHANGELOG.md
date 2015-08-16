@@ -4,6 +4,7 @@
 
 Bug Fixes:
 * [Annotation API] proxym does not exit in case the ZK con is lost [#17](https://github.com/wndhydrnt/proxym/issues/17)
+* [Docs] Fix wrong link to `manager.RegisterHttpHandler`
 
 ## 1.5.0
 
