@@ -1,6 +1,11 @@
 # Changelog
 
-## 1.5.0 (unreleased)
+## 1.6.0 (unreleased)
+
+Bug Fixes:
+* [Annotation API] proxym does not exit in case the ZK con is lost [#17](https://github.com/wndhydrnt/proxym/issues/17)
+
+## 1.5.0
 
 Features:
 * [Hipache] Add support for Hipache

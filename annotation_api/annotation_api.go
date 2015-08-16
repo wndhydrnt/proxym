@@ -82,6 +82,7 @@ type AnnotationApi struct {
 	zkCon    *zk.Conn
 }
 
+// Annotate implements the Annotator interface.
 func (h *AnnotationApi) Annotate(services []*types.Service) error {
 	for _, service := range services {
 		annotation, err := h.registry.Get(service.Id)
@@ -104,6 +105,7 @@ func (h *AnnotationApi) Annotate(services []*types.Service) error {
 	return nil
 }
 
+// Start implements the Notifier interface.
 func (h *AnnotationApi) Start(refresh chan string, quit chan int, wg *sync.WaitGroup) {
 	for {
 		select {
@@ -139,17 +141,9 @@ func (h *AnnotationApi) watchAnnotation(id string) {
 	path := zookeeperPath + "/" + id
 
 	for {
-		data, stat, ech, err := h.zkCon.GetW(path)
-		if stat == nil {
-			log.AppLog.Debug("zNode '%s' has been deleted - stopping watch", path)
-			h.registry.Delete(id)
-			h.change <- 1
-			return
-		}
+		data, _, ech, err := h.zkCon.GetW(path)
 		if err != nil {
-			log.ErrorLog.Error("Error reading zNode '%s': '%s' - stopping watch", path, err)
-			h.registry.Delete(id)
-			h.change <- 1
+			log.ErrorLog.Error("Error reading zNode %s: %s - stopping watch", path, err)
 			return
 		}
 
@@ -157,7 +151,7 @@ func (h *AnnotationApi) watchAnnotation(id string) {
 		err = json.Unmarshal(data, annotation)
 		if err != nil {
 			h.registry.Delete(id)
-			log.ErrorLog.Error("Unable to unmarshal annotation of '%s' - stopping watch: %s", path, err)
+			log.ErrorLog.Error("Error unmarshalling annotation %s: %s - stopping watch", path, err)
 			h.change <- 1
 			return
 		}
@@ -167,6 +161,29 @@ func (h *AnnotationApi) watchAnnotation(id string) {
 		h.change <- 1
 
 		<-ech
+	}
+}
+
+// Handles global events emitted by the connection to Zookeeper
+func (h *AnnotationApi) watchConnectionEvents(ev <-chan zk.Event) {
+	p := zookeeperPath + "/"
+
+	for e := range ev {
+		// Ensure that proxym exits in case Zookeeper goes away
+		if e.State == zk.StateDisconnected {
+			h.zkCon.Close()
+			log.ErrorLog.Fatalf("Disconnected from Zookeeper server %s - shutting down", e.Server)
+		}
+
+		// Delete an annotation from the registry on removal
+		if e.Type == zk.EventNodeDeleted {
+			if strings.HasPrefix(e.Path, p) {
+				id := strings.TrimPrefix(e.Path, p)
+				h.registry.Delete(id)
+				h.change <- 1
+				log.AppLog.Debug("Deleted annotation %s", e.Path)
+			}
+		}
 	}
 }
 
@@ -226,27 +243,30 @@ func init() {
 
 		servers := strings.Split(c.ZookeeperServers, ",")
 
-		zkCon, _, err := zk.Connect(zk.FormatServers(servers), time.Second)
+		zkCon, ev, err := zk.Connect(zk.FormatServers(servers), time.Second)
 		if err != nil {
-			log.ErrorLog.Critical("Unable to connect to Zookeeper server '%s': %s", c.ZookeeperServers, err)
-			return
+			log.ErrorLog.Fatalf("Unable to connect to Zookeeper server %s: %s - shutting down", c.ZookeeperServers, err)
 		}
 
 		err = createPathInZk("/proxym", zkCon)
 		if err != nil {
-			log.ErrorLog.Critical("An error occured while creating zNode '%s': %s", "/proxym", err)
+			zkCon.Close()
+			log.ErrorLog.Fatalf("Error creating zNode %s: %s", "/proxym", err)
 			return
 		}
 
 		err = createPathInZk(zookeeperPath, zkCon)
 		if err != nil {
-			log.ErrorLog.Critical("An error occured while creating zNode '%s': %s", zookeeperPath, err)
+			zkCon.Close()
+			log.ErrorLog.Fatalf("Error creating zNode %s: %s", zookeeperPath, err)
 			return
 		}
 
 		api := NewAnnotationApi(&c, zkCon)
 
 		go api.watchNewAnnotations()
+
+		go api.watchConnectionEvents(ev)
 
 		manager.AddAnnotator(api)
 
