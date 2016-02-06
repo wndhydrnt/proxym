@@ -109,9 +109,11 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []*types.Servic
 			service.Hosts = append(service.Hosts, host)
 
 			if index == -1 {
+				service.Config = findConfigFromLabel(app, containerPort)
+				service.Domains = findDomainsFromLabel(app)
 				service.Id = normalizeID(task.AppID, containerPort)
 				service.Port = containerPort
-				service.TransportProtocol = protocol
+				service.TransportProtocol = findProtocolFromLabel(app, protocol, containerPort)
 				service.ServicePort = task.ServicePorts[i]
 				service.Source = "Marathon"
 				services = append(services, service)
@@ -142,6 +144,34 @@ func appOfTask(apps Apps, task Task) (App, error) {
 	}
 
 	return App{}, fmt.Errorf("No app for task '%s' found", task.AppID)
+}
+
+func findConfigFromLabel(app App, port int) string {
+	key := fmt.Sprintf("proxym.port.%d.config", port)
+
+	_, exists := app.Labels[key]
+	if exists {
+		return app.Labels[key]
+	}
+	return ""
+}
+
+func findDomainsFromLabel(app App) []string {
+	value, exists := app.Labels["proxym.domains"]
+	if exists {
+		return strings.Split(value, ",")
+	}
+	return []string{}
+}
+
+func findProtocolFromLabel(app App, fallback string, port int) string {
+	key := fmt.Sprintf("proxym.port.%d.protocol", port)
+
+	_, ok := app.Labels[key]
+	if ok {
+		return app.Labels[key]
+	}
+	return fallback
 }
 
 // Replace "/" in the ID if a Service with "_" and prepend "marathon_".
