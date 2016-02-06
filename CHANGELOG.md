@@ -2,6 +2,9 @@
 
 ## 1.6.0 (unreleased)
 
+Features:
+* [STDOUT] Add module stdout
+
 Improvements:
 * [Marathon] Configure protocol, domains and config through labels
 
