@@ -2,7 +2,6 @@ package marathon
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/types"
@@ -20,7 +19,7 @@ type Generator struct {
 	marathonServers []string
 }
 
-// Queries a Marathon master to receive running applications and tasks and generates a list of services.
+// Generate queries a Marathon master to receive running applications and tasks and generates a list of services.
 func (g *Generator) Generate() ([]*types.Service, error) {
 	var apps Apps
 	var tasks Tasks
@@ -103,16 +102,18 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []*types.Servic
 				protocol = app.Container.Docker.PortMappings[i].Protocol
 			}
 
-			service, index := appInServices(task.AppId, containerPort, services)
+			service, index := appInServices(task.AppID, containerPort, services)
 
 			host := types.Host{Ip: task.Host, Port: taskPort}
 
 			service.Hosts = append(service.Hosts, host)
 
 			if index == -1 {
-				service.Id = normalizeId(task.AppId, containerPort)
+				service.Config = findConfigFromLabel(app, containerPort)
+				service.Domains = findDomainsFromLabel(app)
+				service.Id = normalizeID(task.AppID, containerPort)
 				service.Port = containerPort
-				service.TransportProtocol = protocol
+				service.TransportProtocol = findProtocolFromLabel(app, protocol, containerPort)
 				service.ServicePort = task.ServicePorts[i]
 				service.Source = "Marathon"
 				services = append(services, service)
@@ -127,7 +128,7 @@ func (g *Generator) servicesFromMarathon(apps Apps, tasks Tasks) []*types.Servic
 
 func appInServices(app string, port int, services []*types.Service) (*types.Service, int) {
 	for i, service := range services {
-		if service.Id == normalizeId(app, port) && service.Port == port {
+		if service.Id == normalizeID(app, port) && service.Port == port {
 			return service, i
 		}
 	}
@@ -137,16 +138,44 @@ func appInServices(app string, port int, services []*types.Service) (*types.Serv
 
 func appOfTask(apps Apps, task Task) (App, error) {
 	for _, app := range apps.Apps {
-		if app.Id == task.AppId {
+		if app.ID == task.AppID {
 			return app, nil
 		}
 	}
 
-	return App{}, errors.New(fmt.Sprintf("No app for task '%s' found", task.AppId))
+	return App{}, fmt.Errorf("No app for task '%s' found", task.AppID)
+}
+
+func findConfigFromLabel(app App, port int) string {
+	key := fmt.Sprintf("proxym.port.%d.config", port)
+
+	_, exists := app.Labels[key]
+	if exists {
+		return app.Labels[key]
+	}
+	return ""
+}
+
+func findDomainsFromLabel(app App) []string {
+	value, exists := app.Labels["proxym.domains"]
+	if exists {
+		return strings.Split(value, ",")
+	}
+	return []string{}
+}
+
+func findProtocolFromLabel(app App, fallback string, port int) string {
+	key := fmt.Sprintf("proxym.port.%d.protocol", port)
+
+	_, ok := app.Labels[key]
+	if ok {
+		return app.Labels[key]
+	}
+	return fallback
 }
 
 // Replace "/" in the ID if a Service with "_" and prepend "marathon_".
-func normalizeId(id string, port int) string {
+func normalizeID(id string, port int) string {
 	parts := strings.Split(id, "/")
 
 	// Remove empty part due to leading '/'

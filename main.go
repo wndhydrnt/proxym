@@ -10,6 +10,7 @@ import (
 	_ "github.com/wndhydrnt/proxym/mesos_master"
 	_ "github.com/wndhydrnt/proxym/proxy"
 	_ "github.com/wndhydrnt/proxym/signal"
+	_ "github.com/wndhydrnt/proxym/stdout"
 	"os"
 	"os/signal"
 )
