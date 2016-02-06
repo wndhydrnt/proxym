@@ -16,7 +16,7 @@ func TestServicesFromMarathon(t *testing.T) {
 			marathonApps := Apps{
 				Apps: []App{
 					App{
-						Id: "/redis",
+						ID: "/redis",
 						Container: Container{
 							Docker: Docker{
 								Network:      "BRIDGE",
@@ -26,7 +26,7 @@ func TestServicesFromMarathon(t *testing.T) {
 						Ports: []int{41000},
 					},
 					App{
-						Id: "/registry",
+						ID: "/registry",
 						Container: Container{
 							Docker: Docker{
 								Network:      "BRIDGE",
@@ -36,7 +36,7 @@ func TestServicesFromMarathon(t *testing.T) {
 						Ports: []int{42000},
 					},
 					App{
-						Id: "/graphite-statsd",
+						ID: "/graphite-statsd",
 						Container: Container{
 							Docker: Docker{
 								Network: "BRIDGE",
@@ -50,7 +50,7 @@ func TestServicesFromMarathon(t *testing.T) {
 						Ports: []int{43000, 43001, 43002},
 					},
 					App{
-						Id: "/host-networking",
+						ID: "/host-networking",
 						Container: Container{
 							Docker: Docker{
 								Network: "HOST",
@@ -73,11 +73,11 @@ func TestServicesFromMarathon(t *testing.T) {
 		if r.Method == "GET" && r.RequestURI == "/v2/tasks" && r.Header.Get("Accept") == "application/json" {
 			marathonTasks := Tasks{
 				Tasks: []Task{
-					Task{AppId: "/redis", Host: "10.10.10.10", Ports: []int{31001}, ServicePorts: []int{41000}},
-					Task{AppId: "/redis", Host: "10.10.10.10", Ports: []int{31003}, ServicePorts: []int{41000}},
-					Task{AppId: "/registry", Host: "10.10.10.10", Ports: []int{31002}, ServicePorts: []int{42000}},
-					Task{AppId: "/graphite-statsd", Host: "10.10.10.11", Ports: []int{31001, 31002, 31003}, ServicePorts: []int{43000, 43001, 43002}},
-					Task{AppId: "/host-networking", Host: "10.10.10.10", Ports: []int{31855}, ServicePorts: []int{8888}},
+					Task{AppID: "/redis", Host: "10.10.10.10", Ports: []int{31001}, ServicePorts: []int{41000}},
+					Task{AppID: "/redis", Host: "10.10.10.10", Ports: []int{31003}, ServicePorts: []int{41000}},
+					Task{AppID: "/registry", Host: "10.10.10.10", Ports: []int{31002}, ServicePorts: []int{42000}},
+					Task{AppID: "/graphite-statsd", Host: "10.10.10.11", Ports: []int{31001, 31002, 31003}, ServicePorts: []int{43000, 43001, 43002}},
+					Task{AppID: "/host-networking", Host: "10.10.10.10", Ports: []int{31855}, ServicePorts: []int{8888}},
 				},
 			}
 
@@ -169,7 +169,7 @@ func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
 			marathonApps := Apps{
 				Apps: []App{
 					App{
-						Id: "/dummy",
+						ID: "/dummy",
 						Container: Container{
 							Docker: Docker{
 								Network:      "BRIDGE",
@@ -192,7 +192,7 @@ func TestShouldNotConsiderAppsWithoutPorts(t *testing.T) {
 		if r.Method == "GET" && r.RequestURI == "/v2/tasks" {
 			marathonTasks := Tasks{
 				Tasks: []Task{
-					Task{AppId: "/dummy", Host: "10.10.10.10", Ports: []int{10001}, ServicePorts: []int{31681}},
+					Task{AppID: "/dummy", Host: "10.10.10.10", Ports: []int{10001}, ServicePorts: []int{31681}},
 				},
 			}
 

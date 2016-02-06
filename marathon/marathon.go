@@ -16,61 +16,62 @@ const (
 	tasksEndpoint             = "/v2/tasks"
 )
 
-// An application as returned by the Marathon REST API.
+// App represents an application as returned by the Marathon REST API.
 type App struct {
-	Id        string
+	ID        string
 	Container Container
+	Labels    map[string]string
 	Ports     []int
 }
 
-// A list of applications as returned by the Marathon REST API.
+// Apps represents a list of applications as returned by the Marathon REST API.
 type Apps struct {
 	Apps []App
 }
 
-// Configuration as required by the Notifier and ServiceGenerator.
+// Config contains settings required by the Notifier and ServiceGenerator.
 type Config struct {
 	Enabled bool
 	Servers string
 }
 
-// A container as returned by the Marathon REST API.
+// Container as returned by the Marathon REST API.
 type Container struct {
 	Docker Docker
 }
 
-// A Docker container as returned by the Marathon REST API.
+// Docker container as returned by the Marathon REST API.
 type Docker struct {
 	Network      string
 	PortMappings []PortMapping
 }
 
-// An event as send by the event bus of Marathon.
+// Event as send by the event bus of Marathon.
 type Event struct {
 	EventType string
 }
 
-// The port mapping of a Docker container as returend by the Marathon REST API.
+// PortMapping of a Docker container as returend by the Marathon REST API.
 type PortMapping struct {
 	ContainerPort int
 	Protocol      string
 	ServicePort   int
 }
 
-// A task as returend by the Marathon REST API.
+// Task as returend by the Marathon REST API.
 type Task struct {
-	AppId        string
+	AppID        string
 	Host         string
 	Ports        []int
 	ServicePorts []int
 }
 
-// A list of tasks as returend by the Marathon REST API.
+// Tasks represents a list of tasks as returend by the Marathon REST API.
 type Tasks struct {
 	Tasks []Task
 }
 
-// Creates and returns a new Notifier
+// NewNotifier creates and returns a new Notifier
 func NewNotifier(c *Config) *Watcher {
 	httpClient := &http.Client{}
 
@@ -81,7 +82,7 @@ func NewNotifier(c *Config) *Watcher {
 	}
 }
 
-// Creates and returns a new ServiceGenerator.
+// NewServiceGenerator creates and returns a new ServiceGenerator.
 func NewServiceGenerator(c *Config) (*Generator, error) {
 	httpClient := &http.Client{}
 	marathonServers := strings.Split(c.Servers, ",")
