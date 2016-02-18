@@ -3,6 +3,8 @@ language: go
 go:
 - 1.5.3
 - 1.6.0
+env:
+  GO15VENDOREXPERIMENT: 1
 before_script:
   - go get github.com/prometheus/procfs
 before_deploy: make package
