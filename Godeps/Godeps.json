@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/wndhydrnt/proxym",
-	"GoVersion": "go1.4.1",
+	"GoVersion": "go1.5",
 	"Packages": [
 		"./..."
 	],
@@ -8,7 +8,7 @@
 		{
 			"ImportPath": "bitbucket.org/ww/goautoneg",
 			"Comment": "null-5",
-			"Rev": "75cd24fc2f2c2a2088577d12123ddee5f54e0675"
+			"Rev": "'75cd24fc2f2c2a2088577d12123ddee5f54e0675'"
 		},
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -103,6 +103,10 @@
 			"ImportPath": "github.com/prometheus/client_model/go",
 			"Comment": "model-0.0.2-12-gfa8ad6f",
 			"Rev": "fa8ad6fec33561be4280a8f0514318c79d7f6cb6"
+		},
+		{
+			"ImportPath": "github.com/prometheus/procfs",
+			"Rev": "c91d8eefde16bd047416409eb56353ea84a186e4"
 		},
 		{
 			"ImportPath": "github.com/russross/blackfriday",
