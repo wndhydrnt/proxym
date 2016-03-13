@@ -51,6 +51,10 @@
 			"Rev": "4e0792c28c6af6d74af7bac93eedb34a29107010"
 		},
 		{
+			"ImportPath": "github.com/kr/fs",
+			"Rev": "2788f0dbd16903de03cb8186e5c7d97b69ad387b"
+		},
+		{
 			"ImportPath": "github.com/kr/pretty",
 			"Comment": "go.weekly.2011-12-22-26-gcb0850c",
 			"Rev": "cb0850c1681cbca3233e84f7e6ec3e4c3f352085"
@@ -88,6 +92,10 @@
 		{
 			"ImportPath": "github.com/opennota/urlesc",
 			"Rev": "5fa9ff0392746aeae1c4b37fcc42c65afa7a9587"
+		},
+		{
+			"ImportPath": "github.com/pkg/sftp",
+			"Rev": "e84cc8c755ca39b7b64f510fe1fffc1b51f210a5"
 		},
 		{
 			"ImportPath": "github.com/prometheus/client_golang/model",
@@ -128,7 +136,7 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/afero",
-			"Rev": "cf9363a5dd0c0cf553e7e62c25a9187cb3fbf92b"
+			"Rev": "2f194a29d557d6d46aa202870df1e9062dbda4d4"
 		},
 		{
 			"ImportPath": "github.com/spf13/cast",
@@ -209,38 +217,30 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/cast5",
-			"Rev": "c89e5683853da5ed97731b507dcd8cda2b11afaf"
+			"Rev": "1f22c0103821b9390939b6776727195525381532"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/curve25519",
+			"Rev": "1f22c0103821b9390939b6776727195525381532"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp",
-			"Rev": "c89e5683853da5ed97731b507dcd8cda2b11afaf"
+			"Rev": "1f22c0103821b9390939b6776727195525381532"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh",
+			"Rev": "1f22c0103821b9390939b6776727195525381532"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
 			"Rev": "b6d7b1396ec874c3b00f6c84cd4301a17c56c8ed"
 		},
 		{
-			"ImportPath": "golang.org/x/text/encoding",
-			"Rev": "07b9a78963006a15c538ec5175243979025fa7a8"
-		},
-		{
-			"ImportPath": "golang.org/x/text/internal/tag",
-			"Rev": "07b9a78963006a15c538ec5175243979025fa7a8"
-		},
-		{
-			"ImportPath": "golang.org/x/text/internal/utf8internal",
-			"Rev": "07b9a78963006a15c538ec5175243979025fa7a8"
-		},
-		{
-			"ImportPath": "golang.org/x/text/language",
-			"Rev": "07b9a78963006a15c538ec5175243979025fa7a8"
-		},
-		{
-			"ImportPath": "golang.org/x/text/runes",
-			"Rev": "07b9a78963006a15c538ec5175243979025fa7a8"
-		},
-		{
 			"ImportPath": "golang.org/x/text/transform",
+			"Rev": "07b9a78963006a15c538ec5175243979025fa7a8"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/norm",
 			"Rev": "07b9a78963006a15c538ec5175243979025fa7a8"
 		},
 		{
