@@ -13,15 +13,13 @@
 
 package prometheus
 
-import "hash/fnv"
-
 // Untyped is a Metric that represents a single numerical value that can
 // arbitrarily go up and down.
 //
 // An Untyped metric works the same as a Gauge. The only difference is that to
 // no type information is implied.
 //
-// To create Gauge instances, use NewUntyped.
+// To create Untyped instances, use NewUntyped.
 type Untyped interface {
 	Metric
 	Collector
@@ -58,7 +56,7 @@ func NewUntyped(opts UntypedOpts) Untyped {
 // labels. This is used if you want to count the same thing partitioned by
 // various dimensions. Create instances with NewUntypedVec.
 type UntypedVec struct {
-	MetricVec
+	*MetricVec
 }
 
 // NewUntypedVec creates a new UntypedVec based on the provided UntypedOpts and
@@ -72,14 +70,9 @@ func NewUntypedVec(opts UntypedOpts, labelNames []string) *UntypedVec {
 		opts.ConstLabels,
 	)
 	return &UntypedVec{
-		MetricVec: MetricVec{
-			children: map[uint64]Metric{},
-			desc:     desc,
-			hash:     fnv.New64a(),
-			newMetric: func(lvs ...string) Metric {
-				return newValue(desc, UntypedValue, 0, lvs...)
-			},
-		},
+		MetricVec: newMetricVec(desc, func(lvs ...string) Metric {
+			return newValue(desc, UntypedValue, 0, lvs...)
+		}),
 	}
 }
 

@@ -2,10 +2,11 @@ package file
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
-	"github.com/wndhydrnt/proxym/types"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	"github.com/wndhydrnt/proxym/types"
 )
 
 func TestServiceGeneratorGenerate(t *testing.T) {

@@ -43,11 +43,15 @@ var errInconsistentCardinality = errors.New("inconsistent label cardinality")
 // ValueType. This is a low-level building block used by the library to back the
 // implementations of Counter, Gauge, and Untyped.
 type value struct {
-	SelfCollector
+	// valBits containst the bits of the represented float64 value. It has
+	// to go first in the struct to guarantee alignment for atomic
+	// operations.  http://golang.org/pkg/sync/atomic/#pkg-note-BUG
+	valBits uint64
+
+	selfCollector
 
 	desc       *Desc
 	valType    ValueType
-	valBits    uint64 // These are the bits of the represented float64 value.
 	labelPairs []*dto.LabelPair
 }
 
@@ -64,7 +68,7 @@ func newValue(desc *Desc, valueType ValueType, val float64, labelValues ...strin
 		valBits:    math.Float64bits(val),
 		labelPairs: makeLabelPairs(desc, labelValues),
 	}
-	result.Init(result)
+	result.init(result)
 	return result
 }
 
@@ -109,7 +113,7 @@ func (v *value) Write(out *dto.Metric) error {
 // library to back the implementations of CounterFunc, GaugeFunc, and
 // UntypedFunc.
 type valueFunc struct {
-	SelfCollector
+	selfCollector
 
 	desc       *Desc
 	valType    ValueType
@@ -130,7 +134,7 @@ func newValueFunc(desc *Desc, valueType ValueType, function func() float64) *val
 		function:   function,
 		labelPairs: makeLabelPairs(desc, nil),
 	}
-	result.Init(result)
+	result.init(result)
 	return result
 }
 

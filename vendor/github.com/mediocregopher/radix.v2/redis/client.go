@@ -9,10 +9,6 @@ import (
 	"time"
 )
 
-const (
-	bufSize int = 4096
-)
-
 // ErrPipelineEmpty is returned from PipeResp() to indicate that all commands
 // which were put into the pipeline have had their responses read
 var ErrPipelineEmpty = errors.New("pipeline queue empty")
@@ -21,7 +17,6 @@ var ErrPipelineEmpty = errors.New("pipeline queue empty")
 type Client struct {
 	conn         net.Conn
 	respReader   *RespReader
-	timeout      time.Duration
 	pending      []request
 	writeScratch []byte
 	writeBuf     *bytes.Buffer
@@ -29,15 +24,26 @@ type Client struct {
 	completed, completedHead []*Resp
 
 	// The network/address of the redis instance this client is connected to.
-	// These will be wahtever strings were passed into the Dial function when
+	// These will be whatever strings were passed into the Dial function when
 	// creating this connection
 	Network, Addr string
 
-	// The most recent critical network error which occured when either reading
-	// or writing. A critical network error is one in which the connection was
-	// found to be no longer usable; in essence, any error except a timeout.
-	// Close is automatically called on the client when it encounters a critical
-	// network error
+	// These define the max time to spend blocking on read/write connections
+	// during commands. These should not be set to zero if they were ever not
+	// zero. These may be set after the Client is initialized, but not while any
+	// methods are being called. DialTimeout will set both of these to its
+	// passed in value.
+	ReadTimeout, WriteTimeout time.Duration
+
+	// The most recent network error which occurred when either reading
+	// or writing. A critical network error is basically any non-application
+	// level error, e.g. a timeout, disconnect, etc... Close is automatically
+	// called on the client when it encounters a critical network error
+	//
+	// NOTE: The ReadResp method does *not* consider a timeout to be a critical
+	// network error, and will not set this field in the event of one. Other
+	// methods which deal with a command-then-response (e.g. Cmd, PipeResp) do
+	// set this and close the connection in the event of a timeout
 	LastCritical error
 }
 
@@ -56,17 +62,33 @@ func DialTimeout(network, addr string, timeout time.Duration) (*Client, error) {
 		return nil, err
 	}
 
+	client, err := NewClient(conn)
+	if err != nil {
+		return nil, err
+	}
+	client.ReadTimeout = timeout
+	client.WriteTimeout = timeout
+	return client, nil
+}
+
+// NewClient initializes a Client instance with a preexisting net.Conn.
+//
+// For example, it can be used to open SSL connections to Redis servers:
+//
+//	conn, err := tls.Dial("tcp", addr, &tls.Config{})
+//	client, err := radix.NewClient(conn)
+func NewClient(conn net.Conn) (*Client, error) {
+	addr := conn.RemoteAddr()
 	completed := make([]*Resp, 0, 10)
 	return &Client{
 		conn:          conn,
 		respReader:    NewRespReader(conn),
-		timeout:       timeout,
 		writeScratch:  make([]byte, 0, 128),
 		writeBuf:      bytes.NewBuffer(make([]byte, 0, 128)),
 		completed:     completed,
 		completedHead: completed,
-		Network:       network,
-		Addr:          addr,
+		Network:       addr.Network(),
+		Addr:          addr.String(),
 	}, nil
 }
 
@@ -84,9 +106,9 @@ func (c *Client) Close() error {
 func (c *Client) Cmd(cmd string, args ...interface{}) *Resp {
 	err := c.writeRequest(request{cmd, args})
 	if err != nil {
-		return newRespIOErr(err)
+		return NewRespIOErr(err)
 	}
-	return c.ReadResp()
+	return c.readResp(true)
 }
 
 // PipeAppend adds the given call to the pipeline queue.
@@ -112,16 +134,32 @@ func (c *Client) PipeResp() *Resp {
 	err := c.writeRequest(c.pending...)
 	c.pending = nil
 	if err != nil {
-		return newRespIOErr(err)
+		return NewRespIOErr(err)
 	}
 	c.completed = c.completedHead
 	for i := 0; i < nreqs; i++ {
-		r := c.ReadResp()
+		r := c.readResp(true)
 		c.completed = append(c.completed, r)
 	}
 
 	// At this point c.completed should have something in it
 	return c.PipeResp()
+}
+
+// PipeClear clears the contents of the current pipeline queue, both commands
+// queued by PipeAppend which have yet to be sent and responses which have yet
+// to be retrieved through PipeResp. The first returned int will be the number
+// of pending commands dropped, the second will be the number of pending
+// responses dropped
+func (c *Client) PipeClear() (int, int) {
+	callCount, replyCount := len(c.pending), len(c.completed)
+	if callCount > 0 {
+		c.pending = nil
+	}
+	if replyCount > 0 {
+		c.completed = nil
+	}
+	return callCount, replyCount
 }
 
 // ReadResp will read a Resp off of the connection without sending anything
@@ -132,11 +170,17 @@ func (c *Client) PipeResp() *Resp {
 // Note: this is a more low-level function, you really shouldn't have to
 // actually use it unless you're writing your own pub/sub code
 func (c *Client) ReadResp() *Resp {
-	if c.timeout != 0 {
-		c.conn.SetReadDeadline(time.Now().Add(c.timeout))
+	return c.readResp(false)
+}
+
+// strict indicates whether or not to consider timeouts as critical network
+// errors
+func (c *Client) readResp(strict bool) *Resp {
+	if c.ReadTimeout != 0 {
+		c.conn.SetReadDeadline(time.Now().Add(c.ReadTimeout))
 	}
 	r := c.respReader.Read()
-	if r.IsType(IOErr) && !IsTimeout(r) {
+	if r.IsType(IOErr) && (strict || !IsTimeout(r)) {
 		c.LastCritical = r.Err
 		c.Close()
 	}
@@ -144,8 +188,8 @@ func (c *Client) ReadResp() *Resp {
 }
 
 func (c *Client) writeRequest(requests ...request) error {
-	if c.timeout != 0 {
-		c.conn.SetWriteDeadline(time.Now().Add(c.timeout))
+	if c.WriteTimeout != 0 {
+		c.conn.SetWriteDeadline(time.Now().Add(c.WriteTimeout))
 	}
 	var err error
 outer:

@@ -58,6 +58,10 @@ var (
 	errNotStr   = errors.New("could not convert to string")
 	errNotInt   = errors.New("could not convert to int")
 	errNotArray = errors.New("could not convert to array")
+
+	// ErrRespNil is returned from methods on Resp like Str, Int, etc... when
+	// called on a Resp which is a nil response
+	ErrRespNil = errors.New("response is nil")
 )
 
 // Resp represents a single response or message being sent to/from a redis
@@ -101,8 +105,9 @@ func NewRespFlattenedStrings(v interface{}) *Resp {
 	return &r
 }
 
-// newRespIOErr is a convenience method for making Resps to wrap io errors
-func newRespIOErr(err error) *Resp {
+// NewRespIOErr takes an error and creates an IOErr response. Use NewResp
+// instead to create an AppErr response.
+func NewRespIOErr(err error) *Resp {
 	r := NewResp(err)
 	r.typ = IOErr
 	return r
@@ -280,6 +285,10 @@ func (r *Resp) WriteTo(w io.Writer) (int64, error) {
 func (r *Resp) Bytes() ([]byte, error) {
 	if r.Err != nil {
 		return nil, r.Err
+	}
+
+	if r.IsType(Nil) {
+		return nil, ErrRespNil
 	} else if !r.IsType(Str) {
 		return nil, errBadType
 	}
@@ -300,8 +309,10 @@ func (r *Resp) Str() (string, error) {
 	return string(b), nil
 }
 
-// Int returns an int representing the value of the Resp. Only valid for a
-// Resp of type Int. If r.Err != nil that will be returned
+// Int returns an int representing the value of the Resp. For a Resp of type Int
+// the integer value will be returned directly. For a Resp of type Str the
+// string will attempt to be parsed as a base-10 integer, returning the parsing
+// error if any. If r.Err != nil that will be returned
 func (r *Resp) Int() (int, error) {
 	i, err := r.Int64()
 	return int(i), err
@@ -312,7 +323,18 @@ func (r *Resp) Int64() (int64, error) {
 	if r.Err != nil {
 		return 0, r.Err
 	}
-	if i, ok := r.val.(int64); ok {
+
+	if r.IsType(Nil) {
+		return 0, ErrRespNil
+	} else if i, ok := r.val.(int64); ok {
+		return i, nil
+	}
+
+	if s, err := r.Str(); err == nil {
+		i, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return 0, err
+		}
 		return i, nil
 	}
 	return 0, errNotInt
@@ -450,18 +472,20 @@ func (r *Resp) String() string {
 	case IOErr:
 		inner = fmt.Sprintf("IOErr %s", r.Err)
 	case BulkStr, SimpleStr:
-		inner = fmt.Sprintf("Str %s", string(r.val.([]byte)))
+		inner = fmt.Sprintf("Str %q", string(r.val.([]byte)))
 	case Int:
 		inner = fmt.Sprintf("Int %d", r.val.(int64))
 	case Nil:
 		inner = fmt.Sprintf("Nil")
 	case Array:
-		kids := r.val.([]*Resp)
+		kids := r.val.([]Resp)
 		kidsStr := make([]string, len(kids))
 		for i := range kids {
 			kidsStr[i] = kids[i].String()
 		}
 		inner = strings.Join(kidsStr, " ")
+	default:
+		inner = "UNKNOWN"
 	}
 	return fmt.Sprintf("Resp(%s)", inner)
 }
@@ -627,10 +651,11 @@ func writeTo(
 		sbuf, buf := stringSlicer(buf, mt)
 		return writeStr(w, buf, sbuf)
 	case bool:
+		buf = buf[:0]
 		if mt {
-			buf[0] = '1'
+			buf = append(buf, '1')
 		} else {
-			buf[0] = '0'
+			buf = append(buf, '0')
 		}
 		return writeStr(w, buf[1:], buf[:1])
 	case nil:

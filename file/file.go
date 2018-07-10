@@ -2,15 +2,16 @@ package file
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"sync"
+
 	"github.com/kelseyhightower/envconfig"
 	"github.com/wndhydrnt/proxym/log"
 	"github.com/wndhydrnt/proxym/manager"
 	"github.com/wndhydrnt/proxym/types"
 	fsnotify "gopkg.in/fsnotify.v1"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"sync"
 )
 
 type Config struct {

@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/kelseyhightower/envconfig"
-	"github.com/spf13/hugo/tpl"
-	"github.com/wndhydrnt/proxym/log"
-	"github.com/wndhydrnt/proxym/manager"
-	"github.com/wndhydrnt/proxym/types"
+	"html/template"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/kelseyhightower/envconfig"
+	"github.com/wndhydrnt/proxym/log"
+	"github.com/wndhydrnt/proxym/manager"
+	"github.com/wndhydrnt/proxym/types"
 )
 
 type Config struct {
@@ -90,7 +91,7 @@ func (h *HAProxyGenerator) config(services []*types.Service) string {
 
 	var out bytes.Buffer
 
-	tpl, err := tpl.New().New("proxy").Parse(globalConfig)
+	tpl, err := template.New("proxy").Parse(globalConfig)
 	if err != nil {
 		log.ErrorLog.Error("%s", err)
 		return ""

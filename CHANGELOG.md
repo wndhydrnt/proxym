@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0
+
+Improvements:
+* [General] Manage dependencies via `dep`
+
 ## 1.6.0 (unreleased)
 
 Features:
